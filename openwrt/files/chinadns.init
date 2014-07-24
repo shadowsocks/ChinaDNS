@@ -1,0 +1,25 @@
+!/bin/sh /etc/rc.common                                                                                                                                                             
+# chinadns init script
+
+START=90
+STOP=15
+EXTRA_COMMANDS="reload"
+
+start()
+{
+    chinadns \
+        -c /etc/chinadns.conf \
+        -m /usr/lib/chinadns \
+        1> /tmp/log/chinadns.log \
+        2> /tmp/log/chinadns.err.log &
+}
+
+stop()
+{
+    killall chinadns
+}
+
+reload()
+{
+    killall -HUP chinadns
+}

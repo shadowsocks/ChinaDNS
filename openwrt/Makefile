@@ -1,11 +1,11 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=ChinaDNS
+PKG_NAME:=ChinaDNS-C
 PKG_VERSION:=1.0.0
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_URL:=https://github.com/clowwindy/ChinaDNS-C/archive
-PKG_SOURCE:=v$(PKG_VERSION).tar.gz
+PKG_SOURCE:=$(PKG_VERSION).tar.gz
 PKG_MAINTAINER:=clowwindy <clowwindy42@gmail.com>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
@@ -17,31 +17,31 @@ PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/ChinaDNS/Default
+define Package/ChinaDNS-C/Default
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=ChinaDNS
+  TITLE:=ChinaDNS-C
 	URL:=https://github.com/clowwindy/ChinaDNS-C
 endef
 
-define Package/ChinaDNS
-  $(call Package/ChinaDNS/Default)
+define Package/ChinaDNS-C
+  $(call Package/ChinaDNS-C/Default)
 endef
 
-define Package/ChinaDNS/description
+define Package/ChinaDNS-C/description
 A DNS forwarder that ignores incorrect(you knew it) responses.
 endef
 
-define Package/ChinaDNS/conffiles
+define Package/ChinaDNS-C/conffiles
 /etc/chinadns_iplist.txt
 endef
 
-define Package/ChinaDNS/install
+define Package/ChinaDNS-C/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_CONF) ../iplist.txt $(1)/etc/chinadns_iplist.txt
-	$(INSTALL_BIN) ./files/chinadns.init $(1)/etc/init.d/chinadns
+	$(INSTALL_CONF) ./files/chinadns.init $(1)/etc/init.d/chinadns
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/chinadns $(1)/usr/bin
 endef
 
-$(eval $(call BuildPackage,ChinaDNS))
+$(eval $(call BuildPackage,ChinaDNS-C))
