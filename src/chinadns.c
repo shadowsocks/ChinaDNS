@@ -96,7 +96,7 @@ const char *help_message =
     fprintf(stderr, "%s %s:%d ", time_str, __FILE__, __LINE__);     \
     perror(v);                                                      \
   }                                                                 \
-} while (0);
+} while (0)
 
 #define LOG(s...) __LOG(0, NULL, s)
 #define ERR(s) __LOG(1, s, NULL)
