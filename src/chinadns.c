@@ -99,7 +99,7 @@ const char *help_message =
 } while (0);
 
 #define LOG(s...) __LOG(0, NULL, s)
-#define ERR(s...) __LOG(1, s, NULL)
+#define ERR(s) __LOG(1, s, NULL)
 
 int main(int argc, char **argv) {
   fd_set readset, errorset;
