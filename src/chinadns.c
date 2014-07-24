@@ -1,13 +1,14 @@
+#include <fcntl.h>
+#include <netdb.h>
+#include <resolv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <fcntl.h>
-#include <resolv.h>
-#include <netdb.h>
+#include <sys/types.h>
 
 typedef struct {
   size_t size;
@@ -34,10 +35,16 @@ char *dns_servers = NULL;
 int dns_servers_len;
 id_addr_t *dns_server_addrs;
 
-int parse_args(int argc, const char **argv);
+int parse_args(int argc, char **argv);
 
 int setnonblock(int sock);
 int resolve_dns_servers();
+
+const char *default_listen_addr = "0.0.0.0";
+const char *default_listen_port = "53";
+
+char *listen_addr = NULL;
+char *listen_port = NULL;
 
 const char *default_ip_list_file = "iplist.txt";
 char *ip_list_file = NULL;
@@ -61,7 +68,21 @@ int id_addr_queue_pos = 0;
 int local_sock;
 int remote_sock;
 
-int main(int argc, const char **argv) {
+const char *help_message = 
+  "usage: chinadns [-h] [-b BIND_ADDR] [-p BIND_PORT] [-s DNS]\n"
+  "Forward DNS requests.\n"
+  "\n"
+  "  -h, --help            show this help message and exit\n"
+  "  -b BIND_ADDR\n"
+  "                        address that listens, default: 127.0.0.1\n"
+  "  -p BIND_PORT\n"
+  "                        port that listens, default: 53\n"
+  "  -s DNS     DNS server to use, default:\n"
+  "                        114.114.114.114,208.67.222.222,8.8.8.8\n"
+  "\n"
+  "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
+
+int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
 
@@ -76,27 +97,23 @@ int main(int argc, const char **argv) {
     return 1;
   max_fd = MAX(local_sock, remote_sock) + 1;
 
-  while (1)
-  {
+  while (1) {
     FD_ZERO(&readset);
     FD_ZERO(&errorset);
     FD_SET(local_sock, &readset);
     FD_SET(local_sock, &errorset);
     FD_SET(remote_sock, &readset);
     FD_SET(remote_sock, &errorset);
-    if (-1 == select(max_fd, &readset, NULL, &errorset, NULL))
-    {
+    if (-1 == select(max_fd, &readset, NULL, &errorset, NULL)) {
       perror("select");
       return 1;
     }
-    if (FD_ISSET(local_sock, &errorset))
-    {
+    if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       printf("local_sock error\n");
       return 1;
     }
-    if (FD_ISSET(remote_sock, &errorset))
-    {
+    if (FD_ISSET(remote_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       printf("remote_sock error\n");
       return 1;
@@ -113,23 +130,47 @@ int main(int argc, const char **argv) {
 int setnonblock(int sock) {
   int flags;
   flags = fcntl(local_sock, F_GETFL, 0);
-  if(flags == -1)
-  {
+  if(flags == -1) {
     perror("fcntl");
     return 1;
   }
   fcntl(local_sock, F_SETFL, flags | O_NONBLOCK);
-  if(flags == -1)
-  {
+  if(flags == -1) {
     perror("fcntl");
     return 1;
   }
   return 0;
 }
 
-int parse_args(int argc, const char **argv) {
+int parse_args(int argc, char **argv) {
+  int ch;
+
   dns_servers = strdup(default_dns_servers);
   ip_list_file = strdup(default_ip_list_file);
+  listen_addr = strdup(default_listen_addr);
+  listen_port = strdup(default_listen_port);
+
+  while ((ch = getopt(argc, argv, "hb:p:s:")) != -1) {
+    switch (ch) {
+    case 'h':
+      printf("%s", help_message);
+      exit(0);
+    case 'b':
+      listen_addr = strdup(optarg);
+      break;
+    case 'p':
+      listen_port = strdup(optarg);
+      break;
+    case 's':
+      dns_servers = strdup(optarg);
+      break;
+    default:
+      printf("%s", help_message);
+      exit(1);
+    }
+  }
+  argc -= optind;
+  argv += optind;
   return 0;
 }
 
@@ -150,10 +191,8 @@ int resolve_dns_servers() {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
   token = strtok(dns_servers, ",");
-  while (token)
-  {
-    if (getaddrinfo(token, "53", &hints, &addr_ip) != 0)
-    {
+  while (token) {
+    if (getaddrinfo(token, "53", &hints, &addr_ip) != 0) {
       perror("getaddrinfo");
       return 1;
     }
@@ -180,13 +219,11 @@ int parse_ip_list() {
   int i = 0;
 
   fp = fopen(ip_list_file, "rb");
-  if (fp == NULL)
-  {
+  if (fp == NULL) {
     perror("can not open ip list: fopen");
     return 1;
   }
-  while ((read = getline(&line, &len, fp)) != -1)
-  {
+  while ((read = getline(&line, &len, fp)) != -1) {
     ip_list.entries++;
   }
   if (line)
@@ -195,8 +232,7 @@ int parse_ip_list() {
 
   ip_list.ips = calloc(ip_list.entries, sizeof(struct in_addr));
   fseek(fp, 0, SEEK_SET);
-  while ((read = getline(&line, &len, fp)) != -1)
-  {
+  while ((read = getline(&line, &len, fp)) != -1) {
     inet_aton(line, &ip_list.ips[i]);
     i++;
   }
@@ -218,13 +254,11 @@ int dns_init_sockets() {
     return 1;
 
   memset(&addr, 0, sizeof(addr));
-  if (0 != getaddrinfo("0.0.0.0", "53", &addr, &addr_ip))
-  {
+  if (0 != getaddrinfo(listen_addr, listen_port, &addr, &addr_ip)) {
     perror("getaddrinfo");
     return 1;
   }
-  if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen))
-  {
+  if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen)) {
     perror("bind");
     return 1;
   }
@@ -244,10 +278,8 @@ void dns_handle_local() {
   int i;
   ns_msg msg;
   len = recvfrom(local_sock, global_buf, BUF_SIZE, 0, src_addr, &src_addrlen);
-  if (len > 0)
-  {
-    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0)
-    {
+  if (len > 0) {
+    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
       perror("ns_initparse");
       free(src_addr);
       return;
@@ -260,10 +292,9 @@ void dns_handle_local() {
     id_addr.addr = src_addr;
     id_addr.addrlen = src_addrlen;
     queue_add(id_addr);
-    for (i = 0; i < dns_servers_len; i++)
-    {
-      if (-1 == sendto(remote_sock, global_buf, len, 0, dns_server_addrs[i].addr,
-                       dns_server_addrs[i].addrlen))
+    for (i = 0; i < dns_servers_len; i++) {
+      if (-1 == sendto(remote_sock, global_buf, len, 0,
+                       dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
         perror("sendto");
     }
   }
@@ -278,10 +309,8 @@ void dns_handle_remote() {
   ssize_t len;
   ns_msg msg;
   len = recvfrom(remote_sock, global_buf, BUF_SIZE, 0, src_addr, &src_len);
-  if (len > 0)
-  {
-    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0)
-    {
+  if (len > 0) {
+    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
       perror("ns_initparse");
       free(src_addr);
       return;
@@ -291,8 +320,7 @@ void dns_handle_remote() {
     query_id = ns_msg_id(msg);
     id_addr_t *id_addr = queue_lookup(query_id);
     id_addr->addr->sa_family = AF_INET;
-    if (id_addr && !should_filter_query(msg))
-    {
+    if (id_addr && !should_filter_query(msg)) {
       if (-1 == sendto(local_sock, global_buf, len, 0, id_addr->addr,
                        id_addr->addrlen))
         perror("sendto");
@@ -316,8 +344,7 @@ void queue_add(id_addr_t id_addr) {
 id_addr_t *queue_lookup(uint16_t id) {
   int i;
   // TODO assign new id instead of using id from clients
-  for (i = 0; i < MAX_QUEUE_LEN; i++)
-  {
+  for (i = 0; i < MAX_QUEUE_LEN; i++) {
     if (id_addr_queue[i].id == id)
       return id_addr_queue + i;
   }
@@ -332,10 +359,8 @@ int should_filter_query(ns_msg msg) {
   if (rrmax == 0)
     return 0;
   printf("got response: ");
-  for (rrnum = 0; rrnum < rrmax; rrnum++)
-  {
-    if (ns_parserr(&msg, ns_s_an, rrnum, &rr))
-    {
+  for (rrnum = 0; rrnum < rrmax; rrnum++) {
+    if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
       perror("ns_parserr");
       return 0;
     }
@@ -343,13 +368,11 @@ int should_filter_query(ns_msg msg) {
     const u_char *rd;
     type = ns_rr_type(rr);
     rd = ns_rr_rdata(rr);
-    if (type == ns_t_a)
-    {
+    if (type == ns_t_a) {
       printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
-              cmp_in_addr);
-      if (r)
-      {
+                  cmp_in_addr);
+      if (r) {
         printf("filter\n");
         return 1;
       }
