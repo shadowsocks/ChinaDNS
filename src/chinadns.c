@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
@@ -55,6 +56,7 @@ int dns_init_sockets();
 void dns_handle_local();
 void dns_handle_remote();
 
+const char *hostname_from_question(ns_msg msg);
 int should_filter_query(ns_msg msg);
 
 void queue_add(id_addr_t id_addr);
@@ -82,6 +84,23 @@ const char *help_message =
   "\n"
   "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
 
+#define __LOG(t, v, s...) do {                                      \
+  time_t now;                                                       \
+  time(&now);                                                       \
+  char *time_str = ctime(&now);                                     \
+  time_str[strlen(time_str) - 1] = '\0';                            \
+  if (t == 0) {                                                     \
+    fprintf(stdout, "%s ", time_str);                               \
+    printf(s);                                                      \
+  } else if (t == 1) {                                              \
+    fprintf(stderr, "%s %s:%d ", time_str, __FILE__, __LINE__);     \
+    perror(v);                                                      \
+  }                                                                 \
+} while (0);
+
+#define LOG(s...) __LOG(0, NULL, s)
+#define ERR(s...) __LOG(1, s, NULL)
+
 int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
@@ -105,17 +124,17 @@ int main(int argc, char **argv) {
     FD_SET(remote_sock, &readset);
     FD_SET(remote_sock, &errorset);
     if (-1 == select(max_fd, &readset, NULL, &errorset, NULL)) {
-      perror("select");
+      ERR("select");
       return 1;
     }
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
-      printf("local_sock error\n");
+      LOG("local_sock error\n");
       return 1;
     }
     if (FD_ISSET(remote_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
-      printf("remote_sock error\n");
+      LOG("remote_sock error\n");
       return 1;
     }
     if (FD_ISSET(local_sock, &readset))
@@ -131,12 +150,12 @@ int setnonblock(int sock) {
   int flags;
   flags = fcntl(local_sock, F_GETFL, 0);
   if(flags == -1) {
-    perror("fcntl");
+    ERR("fcntl");
     return 1;
   }
   fcntl(local_sock, F_SETFL, flags | O_NONBLOCK);
   if(flags == -1) {
-    perror("fcntl");
+    ERR("fcntl");
     return 1;
   }
   return 0;
@@ -178,12 +197,13 @@ int resolve_dns_servers() {
   struct addrinfo hints;
   struct addrinfo *addr_ip;
   char* token;
+  int r;
   int i = 0;
   char *pch = strchr(dns_servers, ',');
   dns_servers_len = 1;
   while (pch != NULL) {
     dns_servers_len++;
-    pch=strchr(pch + 1, ',');
+    pch = strchr(pch + 1, ',');
   }
   dns_server_addrs = calloc(dns_servers_len, sizeof(id_addr_t));
 
@@ -192,8 +212,8 @@ int resolve_dns_servers() {
   hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
   token = strtok(dns_servers, ",");
   while (token) {
-    if (getaddrinfo(token, "53", &hints, &addr_ip) != 0) {
-      perror("getaddrinfo");
+    if (0 != (r = getaddrinfo(token, "53", &hints, &addr_ip))) {
+      LOG("%s:%s\n", gai_strerror(r), token);
       return 1;
     }
     dns_server_addrs[i].addr = addr_ip->ai_addr;
@@ -220,7 +240,7 @@ int parse_ip_list() {
 
   fp = fopen(ip_list_file, "rb");
   if (fp == NULL) {
-    perror("can not open ip list: fopen");
+    ERR("Can't open ip list: fopen");
     return 1;
   }
   while ((read = getline(&line, &len, fp)) != -1) {
@@ -248,18 +268,20 @@ int parse_ip_list() {
 int dns_init_sockets() {
   struct addrinfo addr;
   struct addrinfo *addr_ip;
+  int r;
 
   local_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (0 != setnonblock(local_sock))
     return 1;
 
   memset(&addr, 0, sizeof(addr));
-  if (0 != getaddrinfo(listen_addr, listen_port, &addr, &addr_ip)) {
-    perror("getaddrinfo");
+  if (0 != (r = getaddrinfo(listen_addr, listen_port, &addr, &addr_ip))) {
+    LOG("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
     return 1;
   }
   if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen)) {
-    perror("bind");
+    LOG("Can't bind address %s:%s\n", listen_addr, listen_port);
+    ERR("bind");
     return 1;
   }
   freeaddrinfo(addr_ip);
@@ -276,17 +298,20 @@ void dns_handle_local() {
   uint16_t query_id;
   ssize_t len;
   int i;
+  const char *question_hostname;
   ns_msg msg;
   len = recvfrom(local_sock, global_buf, BUF_SIZE, 0, src_addr, &src_addrlen);
   if (len > 0) {
     if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
-      perror("ns_initparse");
+      ERR("ns_initparse");
       free(src_addr);
       return;
     }
     // parse DNS query id
     // TODO generate id for each request to avoid conflicts
     query_id = ns_msg_id(msg);
+    question_hostname = hostname_from_question(msg);
+    LOG("request: %s\n", question_hostname);
     id_addr_t id_addr;
     id_addr.id = query_id;
     id_addr.addr = src_addr;
@@ -295,11 +320,11 @@ void dns_handle_local() {
     for (i = 0; i < dns_servers_len; i++) {
       if (-1 == sendto(remote_sock, global_buf, len, 0,
                        dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
-        perror("sendto");
+        ERR("sendto");
     }
   }
   else
-    perror("recvfrom");
+    ERR("recvfrom");
 }
 
 void dns_handle_remote() {
@@ -307,11 +332,12 @@ void dns_handle_remote() {
   socklen_t src_len = sizeof(src_addr);
   uint16_t query_id;
   ssize_t len;
+  const char *question_hostname;
   ns_msg msg;
   len = recvfrom(remote_sock, global_buf, BUF_SIZE, 0, src_addr, &src_len);
   if (len > 0) {
     if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
-      perror("ns_initparse");
+      ERR("ns_initparse");
       free(src_addr);
       return;
     }
@@ -320,14 +346,20 @@ void dns_handle_remote() {
     query_id = ns_msg_id(msg);
     id_addr_t *id_addr = queue_lookup(query_id);
     id_addr->addr->sa_family = AF_INET;
+    question_hostname = hostname_from_question(msg);
+    LOG("response %s from %s: ", question_hostname,
+           inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr));
     if (id_addr && !should_filter_query(msg)) {
+      printf("pass\n");
       if (-1 == sendto(local_sock, global_buf, len, 0, id_addr->addr,
                        id_addr->addrlen))
-        perror("sendto");
+        ERR("sendto");
+    } else {
+      printf("filter\n");
     }
   }
   else
-    perror("recvfrom");
+    ERR("recvfrom");
 
 }
 
@@ -351,6 +383,37 @@ id_addr_t *queue_lookup(uint16_t id) {
   return NULL;
 }
 
+static char *hostname_buf = NULL;
+size_t hostname_buflen = 0;
+const char *hostname_from_question(ns_msg msg) {
+  ns_rr rr;
+  int rrnum, rrmax;
+  const char *result;
+  int result_len;
+  rrmax = ns_msg_count(msg, ns_s_qd);
+  if (rrmax == 0)
+    return NULL;
+  for (rrnum = 0; rrnum < rrmax; rrnum++) {
+    if (ns_parserr(&msg, ns_s_qd, rrnum, &rr)) {
+      ERR("ns_parserr");
+      return NULL;
+    }
+    u_int type;
+    const u_char *rd;
+    type = ns_rr_type(rr);
+    rd = ns_rr_rdata(rr);
+    result = ns_rr_name(rr);
+    result_len = strlen(result) + 1;
+    if (result_len > hostname_buflen) {
+      hostname_buflen = result_len << 1;
+      hostname_buf = realloc(hostname_buf, hostname_buflen);
+    }
+    memcpy(hostname_buf, result, result_len);
+    return hostname_buf;
+  }
+  return NULL;
+}
+
 int should_filter_query(ns_msg msg) {
   ns_rr rr;
   int rrnum, rrmax;
@@ -358,10 +421,9 @@ int should_filter_query(ns_msg msg) {
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
     return 0;
-  printf("got response: ");
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
     if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
-      perror("ns_parserr");
+      ERR("ns_parserr");
       return 0;
     }
     u_int type;
@@ -372,12 +434,9 @@ int should_filter_query(ns_msg msg) {
       printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
-      if (r) {
-        printf("filter\n");
+      if (r)
         return 1;
-      }
     }
   }
-  printf("pass\n");
   return 0;
 }
