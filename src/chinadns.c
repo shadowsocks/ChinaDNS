@@ -292,7 +292,7 @@ int dns_init_sockets() {
 
 void dns_handle_local() {
   struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
-  socklen_t src_addrlen = sizeof(src_addr);
+  socklen_t src_addrlen = sizeof(struct sockaddr);
   uint16_t query_id;
   ssize_t len;
   int i;
@@ -327,7 +327,7 @@ void dns_handle_local() {
 
 void dns_handle_remote() {
   struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
-  socklen_t src_len = sizeof(src_addr);
+  socklen_t src_len = sizeof(struct sockaddr);
   uint16_t query_id;
   ssize_t len;
   const char *question_hostname;
