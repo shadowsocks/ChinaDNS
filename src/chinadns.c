@@ -62,7 +62,6 @@ int local_sock;
 int remote_sock;
 
 int main(int argc, const char **argv) {
-  int r;
   fd_set readset, errorset;
   int max_fd;
 
@@ -73,8 +72,7 @@ int main(int argc, const char **argv) {
     return 1;
   if (0 != resolve_dns_servers())
     return 1;
-  r = dns_init_sockets();
-  if (r != 0)
+  if (0 != dns_init_sockets())
     return 1;
   max_fd = MAX(local_sock, remote_sock) + 1;
 
@@ -86,8 +84,7 @@ int main(int argc, const char **argv) {
     FD_SET(local_sock, &errorset);
     FD_SET(remote_sock, &readset);
     FD_SET(remote_sock, &errorset);
-    r = select(max_fd, &readset, NULL, &errorset, NULL);
-    if (r == -1)
+    if (-1 == select(max_fd, &readset, NULL, &errorset, NULL))
     {
       perror("select");
       return 1;
@@ -213,32 +210,27 @@ int parse_ip_list() {
 }
 
 int dns_init_sockets() {
-  int r;
   struct addrinfo addr;
   struct addrinfo *addr_ip;
 
   local_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  r = setnonblock(local_sock);
-  if (r != 0)
+  if (0 != setnonblock(local_sock))
     return 1;
 
   memset(&addr, 0, sizeof(addr));
-  r = getaddrinfo("0.0.0.0", "53", &addr, &addr_ip);
-  if (r != 0)
+  if (0 != getaddrinfo("0.0.0.0", "53", &addr, &addr_ip))
   {
     perror("getaddrinfo");
     return 1;
   }
-  r = bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen);
-  if (r != 0)
+  if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen))
   {
     perror("bind");
     return 1;
   }
   freeaddrinfo(addr_ip);
   remote_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  r = setnonblock(remote_sock);
-  if (r != 0)
+  if (0 != setnonblock(remote_sock))
     return 1;
 
   return 0;
