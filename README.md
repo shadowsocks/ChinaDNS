@@ -63,9 +63,9 @@ Test if it works correctly:
     Name:	youtube-ui-china.l.google.com
     Address: 173.194.72.138
 
-Currently ChinaDNS-C only supports UDP. Builtin OpenWRT init script contains
-the following iptables rule for TCP. If you start it without init script, you
-need to run it yourself:
+Currently ChinaDNS-C only supports UDP. Builtin OpenWRT init script works with
+dnsmasq, which handles TCP. If you start it on PC, you need to add a rule for
+TCP:
 
     iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
 

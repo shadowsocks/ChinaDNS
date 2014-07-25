@@ -7,16 +7,17 @@ EXTRA_COMMANDS="reload"
 
 start()
 {
-    iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
     chinadns \
         -l /etc/chinadns_iplist.txt \
+        -p 5353 \
         1> /tmp/log/chinadns.log \
         2> /tmp/log/chinadns.err.log &
+    iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
 }
 
 stop()
 {
-    iptables -t nat -D PREROUTING -p tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
+    iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
     killall chinadns
 }
 
