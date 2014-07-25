@@ -121,9 +121,9 @@ static const char *help_message =
   }                                                                 \
 } while (0)
 
-#define LOG(s...) __LOG(stdout, 0, "", s)
-#define ERR(s) __LOG(stderr, 1, s, "")
-#define VERR(s...) __LOG(stderr, 0, "", s)
+#define LOG(s...) __LOG(stdout, 0, "_", s)
+#define ERR(s) __LOG(stderr, 1, s, "_")
+#define VERR(s...) __LOG(stderr, 0, "_", s)
 
 int main(int argc, char **argv) {
   fd_set readset, errorset;
