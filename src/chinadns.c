@@ -441,10 +441,6 @@ static const char *hostname_from_question(ns_msg msg) {
       ERR("ns_parserr");
       return NULL;
     }
-    u_int type;
-    const u_char *rd;
-    type = ns_rr_type(rr);
-    rd = ns_rr_rdata(rr);
     result = ns_rr_name(rr);
     result_len = strlen(result) + 1;
     if (result_len > hostname_buflen) {
