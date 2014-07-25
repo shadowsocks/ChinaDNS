@@ -38,7 +38,6 @@ Usage
 * OpenWRT
 
         opkg install ChinaDNS-C_1.0.0_ar71xx.ipk
-        /etc/init.d/dnsmasq stop
         /etc/init.d/chinadns start
 
 Test if it works correctly:
