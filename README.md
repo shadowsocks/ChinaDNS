@@ -9,7 +9,7 @@ Install
 
 * Linux / Unix
 
-    ```make```
+        make
 
 * OpenWRT
 
