@@ -32,64 +32,65 @@ typedef struct {
 
 // avoid malloc and free
 #define BUF_SIZE 2048
-char global_buf[BUF_SIZE];
+static char global_buf[BUF_SIZE];
 
-int verbose = 0;
+static int verbose = 0;
 
-const char *version = "ChinaDNS 1.0.0";
+static const char *version = "ChinaDNS 1.0.0";
 
-const char *default_dns_servers = "114.114.114.114,8.8.8.8,208.67.222.222";
-char *dns_servers = NULL;
-int dns_servers_len;
-id_addr_t *dns_server_addrs;
+static const char *default_dns_servers =
+  "114.114.114.114,8.8.8.8,208.67.222.222";
+static char *dns_servers = NULL;
+static int dns_servers_len;
+static id_addr_t *dns_server_addrs;
 
-int parse_args(int argc, char **argv);
+static int parse_args(int argc, char **argv);
 
-int setnonblock(int sock);
-int resolve_dns_servers();
+static int setnonblock(int sock);
+static int resolve_dns_servers();
 
-const char *default_listen_addr = "0.0.0.0";
-const char *default_listen_port = "53";
+static const char *default_listen_addr = "0.0.0.0";
+static const char *default_listen_port = "53";
 
-char *listen_addr = NULL;
-char *listen_port = NULL;
+static char *listen_addr = NULL;
+static char *listen_port = NULL;
 
-const char *default_ip_list_file = "iplist.txt";
-char *ip_list_file = NULL;
-ip_list_t ip_list;
-int parse_ip_list();
+static const char *default_ip_list_file = "iplist.txt";
+static char *ip_list_file = NULL;
+static ip_list_t ip_list;
+static int parse_ip_list();
 
-int dns_init_sockets();
-void dns_handle_local();
-void dns_handle_remote();
+static int dns_init_sockets();
+static void dns_handle_local();
+static void dns_handle_remote();
 
-const char *hostname_from_question(ns_msg msg);
-int should_filter_query(ns_msg msg);
+static const char *hostname_from_question(ns_msg msg);
+static int should_filter_query(ns_msg msg);
 
-void queue_add(id_addr_t id_addr);
-id_addr_t *queue_lookup(uint16_t id);
+static void queue_add(id_addr_t id_addr);
+static id_addr_t *queue_lookup(uint16_t id);
 
 #define ID_ADDR_QUEUE_LEN 128
 // use a queue instead of hash here since it's not long
-id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
-int id_addr_queue_pos = 0;
+static id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
+static int id_addr_queue_pos = 0;
 
 #define EMPTY_RESULT_DELAY 3
 #define DELAY_QUEUE_LEN 32
-delay_buf_t delay_queue[DELAY_QUEUE_LEN];
-void schedule_delay(const char *buf, size_t buflen, struct sockaddr *addr,
-                    socklen_t addrlen);
-void check_and_send_delay();
-void free_delay(int pos);
+static delay_buf_t delay_queue[DELAY_QUEUE_LEN];
+static void schedule_delay(const char *buf, size_t buflen,
+                           struct sockaddr *addr, socklen_t addrlen);
+static void check_and_send_delay();
+static void free_delay(int pos);
 // next position for first, not used
-int delay_queue_first = 0;
+static int delay_queue_first = 0;
 // current position for last, used
-int delay_queue_last = 0;
+static int delay_queue_last = 0;
 
-int local_sock;
-int remote_sock;
+static int local_sock;
+static int remote_sock;
 
-const char *help_message = 
+static const char *help_message =
   "usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n"
   "       [-s DNS] [-v]\n"
   "Forward DNS requests.\n"
@@ -175,7 +176,7 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-int setnonblock(int sock) {
+static int setnonblock(int sock) {
   int flags;
   flags = fcntl(local_sock, F_GETFL, 0);
   if(flags == -1) {
@@ -190,7 +191,7 @@ int setnonblock(int sock) {
   return 0;
 }
 
-int parse_args(int argc, char **argv) {
+static int parse_args(int argc, char **argv) {
   int ch;
   dns_servers = strdup(default_dns_servers);
   ip_list_file = strdup(default_ip_list_file);
@@ -226,7 +227,7 @@ int parse_args(int argc, char **argv) {
   return 0;
 }
 
-int resolve_dns_servers() {
+static int resolve_dns_servers() {
   struct addrinfo hints;
   struct addrinfo *addr_ip;
   char* token;
@@ -257,13 +258,13 @@ int resolve_dns_servers() {
   return 0;
 }
 
-int cmp_in_addr(const void *a, const void *b) {
+static int cmp_in_addr(const void *a, const void *b) {
   struct in_addr *ina = (struct in_addr *)a;
   struct in_addr *inb = (struct in_addr *)b;
   return ina->s_addr - inb->s_addr;
 }
 
-int parse_ip_list() {
+static int parse_ip_list() {
   FILE * fp;
   char * line = NULL;
   size_t len = 0;
@@ -298,7 +299,7 @@ int parse_ip_list() {
   return 0;
 }
 
-int dns_init_sockets() {
+static int dns_init_sockets() {
   struct addrinfo addr;
   struct addrinfo *addr_ip;
   int r;
@@ -323,7 +324,7 @@ int dns_init_sockets() {
   return 0;
 }
 
-void dns_handle_local() {
+static void dns_handle_local() {
   struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
   socklen_t src_addrlen = sizeof(struct sockaddr);
   uint16_t query_id;
@@ -358,7 +359,7 @@ void dns_handle_local() {
     ERR("recvfrom");
 }
 
-void dns_handle_remote() {
+static void dns_handle_remote() {
   struct sockaddr *src_addr = malloc(sizeof(struct sockaddr));
   socklen_t src_len = sizeof(struct sockaddr);
   uint16_t query_id;
@@ -407,7 +408,7 @@ void dns_handle_remote() {
     ERR("recvfrom");
 }
 
-void queue_add(id_addr_t id_addr) {
+static void queue_add(id_addr_t id_addr) {
   id_addr_queue_pos = (id_addr_queue_pos + 1) % ID_ADDR_QUEUE_LEN;
   // free next hole
   id_addr_t old_id_addr = id_addr_queue[id_addr_queue_pos];
@@ -415,7 +416,7 @@ void queue_add(id_addr_t id_addr) {
   id_addr_queue[id_addr_queue_pos] = id_addr;
 }
 
-id_addr_t *queue_lookup(uint16_t id) {
+static id_addr_t *queue_lookup(uint16_t id) {
   int i;
   // TODO assign new id instead of using id from clients
   for (i = 0; i < ID_ADDR_QUEUE_LEN; i++) {
@@ -426,8 +427,8 @@ id_addr_t *queue_lookup(uint16_t id) {
 }
 
 static char *hostname_buf = NULL;
-size_t hostname_buflen = 0;
-const char *hostname_from_question(ns_msg msg) {
+static size_t hostname_buflen = 0;
+static const char *hostname_from_question(ns_msg msg) {
   ns_rr rr;
   int rrnum, rrmax;
   const char *result;
@@ -456,7 +457,7 @@ const char *hostname_from_question(ns_msg msg) {
   return NULL;
 }
 
-int should_filter_query(ns_msg msg) {
+static int should_filter_query(ns_msg msg) {
   ns_rr rr;
   int rrnum, rrmax;
   void *r;
@@ -484,8 +485,8 @@ int should_filter_query(ns_msg msg) {
   return 0;
 }
 
-void schedule_delay(const char *buf, size_t buflen, struct sockaddr *addr,
-                    socklen_t addrlen) {
+static void schedule_delay(const char *buf, size_t buflen,
+                           struct sockaddr *addr, socklen_t addrlen) {
   time_t now;
   time(&now);
 
@@ -505,7 +506,7 @@ void schedule_delay(const char *buf, size_t buflen, struct sockaddr *addr,
   }
 }
 
-void check_and_send_delay() {
+static void check_and_send_delay() {
   time_t ts_limit;
   int i;
   time(&ts_limit);
@@ -526,7 +527,7 @@ void check_and_send_delay() {
   }
 }
 
-void free_delay(int pos) {
+static void free_delay(int pos) {
   free(delay_queue[pos].buf);
   free(delay_queue[pos].addr);
 }
