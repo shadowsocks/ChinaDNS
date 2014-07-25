@@ -75,6 +75,7 @@ const char *help_message =
   "Forward DNS requests.\n"
   "\n"
   "  -h, --help            show this help message and exit\n"
+  "  -l IPLIST_FILE        path to ip blacklist file\n"
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
@@ -82,22 +83,23 @@ const char *help_message =
   "\n"
   "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
 
-#define __LOG(t, v, s...) do {                                      \
+#define __LOG(o, t, v, s...) do {                                      \
   time_t now;                                                       \
   time(&now);                                                       \
   char *time_str = ctime(&now);                                     \
   time_str[strlen(time_str) - 1] = '\0';                            \
   if (t == 0) {                                                     \
-    fprintf(stdout, "%s ", time_str);                               \
+    fprintf(o, "%s ", time_str);                               \
     printf(s);                                                      \
   } else if (t == 1) {                                              \
-    fprintf(stderr, "%s %s:%d ", time_str, __FILE__, __LINE__);     \
+    fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);     \
     perror(v);                                                      \
   }                                                                 \
 } while (0)
 
-#define LOG(s...) __LOG(0, NULL, s)
-#define ERR(s) __LOG(1, s, NULL)
+#define LOG(s...) __LOG(stdout, 0, NULL, s)
+#define ERR(s) __LOG(stderr, 1, s, NULL)
+#define VERR(s...) __LOG(stderr, 0, NULL, s)
 
 int main(int argc, char **argv) {
   fd_set readset, errorset;
@@ -127,12 +129,12 @@ int main(int argc, char **argv) {
     }
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
-      LOG("local_sock error\n");
+      VERR("local_sock error\n");
       return 1;
     }
     if (FD_ISSET(remote_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
-      LOG("remote_sock error\n");
+      VERR("remote_sock error\n");
       return 1;
     }
     if (FD_ISSET(local_sock, &readset))
@@ -167,7 +169,7 @@ int parse_args(int argc, char **argv) {
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
 
-  while ((ch = getopt(argc, argv, "hb:p:s:")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:")) != -1) {
     switch (ch) {
     case 'h':
       printf("%s", help_message);
@@ -180,6 +182,9 @@ int parse_args(int argc, char **argv) {
       break;
     case 's':
       dns_servers = strdup(optarg);
+      break;
+    case 'l':
+      ip_list_file = strdup(optarg);
       break;
     default:
       printf("%s", help_message);
@@ -211,7 +216,7 @@ int resolve_dns_servers() {
   token = strtok(dns_servers, ",");
   while (token) {
     if (0 != (r = getaddrinfo(token, "53", &hints, &addr_ip))) {
-      LOG("%s:%s\n", gai_strerror(r), token);
+      VERR("%s:%s\n", gai_strerror(r), token);
       return 1;
     }
     dns_server_addrs[i].addr = addr_ip->ai_addr;
@@ -238,7 +243,8 @@ int parse_ip_list() {
 
   fp = fopen(ip_list_file, "rb");
   if (fp == NULL) {
-    ERR("Can't open ip list: fopen");
+    ERR("fopen");
+    VERR("Can't open ip list: %s\n", ip_list_file);
     return 1;
   }
   while ((read = getline(&line, &len, fp)) != -1) {
@@ -274,12 +280,12 @@ int dns_init_sockets() {
 
   memset(&addr, 0, sizeof(addr));
   if (0 != (r = getaddrinfo(listen_addr, listen_port, &addr, &addr_ip))) {
-    LOG("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
+    VERR("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
     return 1;
   }
   if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen)) {
-    LOG("Can't bind address %s:%s\n", listen_addr, listen_port);
     ERR("bind");
+    VERR("Can't bind address %s:%s\n", listen_addr, listen_port);
     return 1;
   }
   freeaddrinfo(addr_ip);
