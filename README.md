@@ -34,8 +34,8 @@ Usage
 
 * Linux / Unix
 
-    Run `sudo chinadns -l iplist.txt` on your local machine. ChinaDNS creates a UDP DNS Server
-    at `0.0.0.0:53`.
+    Run `sudo chinadns -l iplist.txt` on your local machine. ChinaDNS creates a
+    UDP DNS Server at `0.0.0.0:53`.
 
 * OpenWRT
 
@@ -47,7 +47,7 @@ Test if it works correctly:
     $ dig @192.168.1.1 www.youtube.com
     Server:		192.168.1.1
     Address:	192.168.1.1#53
-    
+
     Non-authoritative answer:
     www.youtube.com	canonical name = youtube-ui.l.google.com.
     youtube-ui.l.google.com	canonical name = youtube-ui-china.l.google.com.
