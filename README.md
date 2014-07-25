@@ -65,19 +65,16 @@ Test if it works correctly:
     Address: 173.194.72.138
 
 Currently ChinaDNS-C only supports UDP. Builtin OpenWRT init script works with
-dnsmasq, which handles TCP. If you start it on PC, you need to add a rule for
-TCP:
+dnsmasq, which handles TCP. If you use it directly without dnsmasq, you need to
+add a redirect rule for TCP:
 
     iptables -t nat -A PREROUTING -p tcp --dport 53 -j DNAT --to-destination 8.8.8.8:53
-
-Note this is required, not optional; you must have the TCP rule, or DNS will
-not function correctly for some queries.
 
 Advanced
 --------
 
     usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]
-        [-s DNS] [-v]
+           [-s DNS] [-v]
     Forward DNS requests.
 
     -h, --help            show this help message and exit
