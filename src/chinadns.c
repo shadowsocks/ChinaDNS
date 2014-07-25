@@ -12,9 +12,12 @@
 #include <sys/types.h>
 
 typedef struct {
-  size_t size;
-  char *data;
-} buf_t;
+  time_t ts;
+  char *buf;
+  size_t buflen;
+  struct sockaddr *addr;
+  socklen_t addrlen;
+} delay_buf_t;
 
 typedef struct {
   uint16_t id;
@@ -62,10 +65,22 @@ int should_filter_query(ns_msg msg);
 void queue_add(id_addr_t id_addr);
 id_addr_t *queue_lookup(uint16_t id);
 
-#define MAX_QUEUE_LEN 128
+#define ID_ADDR_QUEUE_LEN 128
 // use a queue instead of hash here since it's not long
-id_addr_t id_addr_queue[MAX_QUEUE_LEN];
+id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
 int id_addr_queue_pos = 0;
+
+#define EMPTY_RESULT_DELAY 3
+#define DELAY_QUEUE_LEN 32
+delay_buf_t delay_queue[DELAY_QUEUE_LEN];
+void schedule_delay(const char *buf, size_t buflen, struct sockaddr *addr,
+                    socklen_t addrlen);
+void check_and_send_delay();
+void free_delay(int pos);
+// next position for first, not used
+int delay_queue_first = 0;
+// current position for last, used
+int delay_queue_last = 0;
 
 int local_sock;
 int remote_sock;
@@ -106,6 +121,7 @@ int main(int argc, char **argv) {
   int max_fd;
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
+  memset(&delay_queue, 0, sizeof(delay_queue));
   if (0 != parse_args(argc, argv))
     return EXIT_FAILURE;
   if (0 != parse_ip_list())
@@ -123,10 +139,15 @@ int main(int argc, char **argv) {
     FD_SET(local_sock, &errorset);
     FD_SET(remote_sock, &readset);
     FD_SET(remote_sock, &errorset);
-    if (-1 == select(max_fd, &readset, NULL, &errorset, NULL)) {
+    struct timeval timeout = {
+      .tv_sec = 1,
+      .tv_usec = 0,
+    };
+    if (-1 == select(max_fd, &readset, NULL, &errorset, &timeout)) {
       ERR("select");
       return EXIT_FAILURE;
     }
+    check_and_send_delay();
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       VERR("local_sock error\n");
@@ -331,6 +352,7 @@ void dns_handle_remote() {
   uint16_t query_id;
   ssize_t len;
   const char *question_hostname;
+  int r;
   ns_msg msg;
   len = recvfrom(remote_sock, global_buf, BUF_SIZE, 0, src_addr, &src_len);
   if (len > 0) {
@@ -347,13 +369,22 @@ void dns_handle_remote() {
     question_hostname = hostname_from_question(msg);
     LOG("response %s from %s: ", question_hostname,
            inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr));
-    if (id_addr && !should_filter_query(msg)) {
-      printf("pass\n");
-      if (-1 == sendto(local_sock, global_buf, len, 0, id_addr->addr,
-                       id_addr->addrlen))
-        ERR("sendto");
+    free(src_addr);
+    if (id_addr) {
+      r = should_filter_query(msg);
+      if (r == 0) {
+        printf("pass\n");
+        if (-1 == sendto(local_sock, global_buf, len, 0, id_addr->addr,
+                        id_addr->addrlen))
+          ERR("sendto");
+      } else if (r == -1) {
+        schedule_delay(global_buf, len, id_addr->addr, id_addr->addrlen);
+        printf("delay\n");
+      } else {
+        printf("filter\n");
+      }
     } else {
-      printf("filter\n");
+      printf("skip\n");
     }
   }
   else
@@ -361,9 +392,7 @@ void dns_handle_remote() {
 }
 
 void queue_add(id_addr_t id_addr) {
-  id_addr_queue_pos++;
-  if (id_addr_queue_pos > MAX_QUEUE_LEN)
-    id_addr_queue_pos = 0;
+  id_addr_queue_pos = (id_addr_queue_pos + 1) % ID_ADDR_QUEUE_LEN;
   // free next hole
   id_addr_t old_id_addr = id_addr_queue[id_addr_queue_pos];
   free(old_id_addr.addr);
@@ -373,7 +402,7 @@ void queue_add(id_addr_t id_addr) {
 id_addr_t *queue_lookup(uint16_t id) {
   int i;
   // TODO assign new id instead of using id from clients
-  for (i = 0; i < MAX_QUEUE_LEN; i++) {
+  for (i = 0; i < ID_ADDR_QUEUE_LEN; i++) {
     if (id_addr_queue[i].id == id)
       return id_addr_queue + i;
   }
@@ -417,7 +446,7 @@ int should_filter_query(ns_msg msg) {
   void *r;
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
-    return 0;
+    return -1;
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
     if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
       ERR("ns_parserr");
@@ -432,8 +461,55 @@ int should_filter_query(ns_msg msg) {
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
       if (r)
-        return -1;
+        return 1;
     }
   }
   return 0;
+}
+
+void schedule_delay(const char *buf, size_t buflen, struct sockaddr *addr,
+                    socklen_t addrlen) {
+  time_t now;
+  time(&now);
+
+  delay_buf_t *delay_buf = &delay_queue[delay_queue_last];
+  delay_buf->ts = now;
+  delay_buf->buf = malloc(buflen);
+  memcpy(delay_buf->buf, buf, buflen);
+  delay_buf->buflen = buflen;
+  delay_buf->addr = malloc(addrlen);
+  memcpy(delay_buf->addr, addr, addrlen);
+  delay_buf->addrlen = addrlen;
+
+  delay_queue_last = (delay_queue_last + 1) % DELAY_QUEUE_LEN;
+  if (delay_queue_last == delay_queue_first) {
+    free_delay(delay_queue_first);
+    delay_queue_first = (delay_queue_first + 1) % DELAY_QUEUE_LEN;
+  }
+}
+
+void check_and_send_delay() {
+  time_t ts_limit;
+  int i;
+  time(&ts_limit);
+  ts_limit -= EMPTY_RESULT_DELAY;
+  for (i = delay_queue_first;
+       i != delay_queue_last;
+       i = (i + 1) % DELAY_QUEUE_LEN) {
+    delay_buf_t *delay_buf = &delay_queue[i];
+    if (delay_buf->ts < ts_limit) {
+      if (-1 == sendto(local_sock, delay_buf->buf, delay_buf->buflen, 0,
+                       delay_buf->addr, delay_buf->addrlen))
+        ERR("sendto");
+      free_delay(i);
+      delay_queue_first = (delay_queue_first + 1) % DELAY_QUEUE_LEN;
+    } else {
+      break;
+    }
+  }
+}
+
+void free_delay(int pos) {
+  free(delay_queue[pos].buf);
+  free(delay_queue[pos].addr);
 }
