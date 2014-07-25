@@ -18,7 +18,7 @@ Install
     Else build yourself: cd into SDK root, then
 
         pushd package
-        git clone https://github.com/clowwindy/ChinaDNS.git
+        git clone https://github.com/clowwindy/ChinaDNS-C.git
         popd
         make menuconfig # select Network/ChinaDNS
         make
