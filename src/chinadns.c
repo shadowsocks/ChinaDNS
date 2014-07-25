@@ -34,6 +34,10 @@ typedef struct {
 #define BUF_SIZE 2048
 char global_buf[BUF_SIZE];
 
+int verbose = 0;
+
+const char *version = "ChinaDNS 1.0.0";
+
 const char *default_dns_servers = "114.114.114.114,8.8.8.8,208.67.222.222";
 char *dns_servers = NULL;
 int dns_servers_len;
@@ -86,7 +90,8 @@ int local_sock;
 int remote_sock;
 
 const char *help_message = 
-  "usage: chinadns [-h] [-b BIND_ADDR] [-p BIND_PORT] [-s DNS]\n"
+  "usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n"
+  "       [-s DNS] [-v]\n"
   "Forward DNS requests.\n"
   "\n"
   "  -h, --help            show this help message and exit\n"
@@ -95,19 +100,22 @@ const char *help_message =
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
   "                        114.114.114.114,208.67.222.222,8.8.8.8\n"
+  "  -v                    verbose logging\n"
   "\n"
   "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
 
-#define __LOG(o, t, v, s...) do {                                      \
+#define __LOG(o, t, v, s...) do {                                   \
   time_t now;                                                       \
   time(&now);                                                       \
   char *time_str = ctime(&now);                                     \
   time_str[strlen(time_str) - 1] = '\0';                            \
   if (t == 0) {                                                     \
-    fprintf(o, "%s ", time_str);                               \
-    printf(s);                                                      \
+    if (verbose) {                                                  \
+      fprintf(o, "%s ", time_str);                                  \
+      printf(s);                                                    \
+    }                                                               \
   } else if (t == 1) {                                              \
-    fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);     \
+    fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);          \
     perror(v);                                                      \
   }                                                                 \
 } while (0)
@@ -130,8 +138,9 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   if (0 != dns_init_sockets())
     return EXIT_FAILURE;
-  max_fd = MAX(local_sock, remote_sock) + 1;
 
+  printf("%s\n", version);
+  max_fd = MAX(local_sock, remote_sock) + 1;
   while (1) {
     FD_ZERO(&readset);
     FD_ZERO(&errorset);
@@ -187,7 +196,7 @@ int parse_args(int argc, char **argv) {
   ip_list_file = strdup(default_ip_list_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-  while ((ch = getopt(argc, argv, "hb:p:s:l:")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:v")) != -1) {
     switch (ch) {
     case 'h':
       printf("%s", help_message);
@@ -203,6 +212,9 @@ int parse_args(int argc, char **argv) {
       break;
     case 'l':
       ip_list_file = strdup(optarg);
+      break;
+    case 'v':
+      verbose = 1;
       break;
     default:
       printf("%s", help_message);
@@ -373,18 +385,22 @@ void dns_handle_remote() {
     if (id_addr) {
       r = should_filter_query(msg);
       if (r == 0) {
-        printf("pass\n");
+        if (verbose)
+          printf("pass\n");
         if (-1 == sendto(local_sock, global_buf, len, 0, id_addr->addr,
                         id_addr->addrlen))
           ERR("sendto");
       } else if (r == -1) {
         schedule_delay(global_buf, len, id_addr->addr, id_addr->addrlen);
-        printf("delay\n");
+        if (verbose)
+          printf("delay\n");
       } else {
-        printf("filter\n");
+        if (verbose)
+          printf("filter\n");
       }
     } else {
-      printf("skip\n");
+      if (verbose)
+        printf("skip\n");
     }
   }
   else
@@ -457,7 +473,8 @@ int should_filter_query(ns_msg msg) {
     type = ns_rr_type(rr);
     rd = ns_rr_rdata(rr);
     if (type == ns_t_a) {
-      printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
+      if (verbose)
+        printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
       if (r)
