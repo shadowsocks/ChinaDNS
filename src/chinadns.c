@@ -364,7 +364,6 @@ void dns_handle_remote() {
   }
   else
     ERR("recvfrom");
-
 }
 
 void queue_add(id_addr_t id_addr) {
