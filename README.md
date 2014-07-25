@@ -1,6 +1,8 @@
 ChinaDNS-C
 ==========
 
+[![Build Status]][Travis CI]
+
 A DNS forwarder that ignores incorrect(you knew it) responses. This is a port
 of [ChinaDNS] to C.
 
@@ -96,6 +98,8 @@ Please visit [Issue Tracker]
 
 Mailing list: http://groups.google.com/group/shadowsocks
 
+[Build Status]:    https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
