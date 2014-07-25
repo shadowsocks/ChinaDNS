@@ -17,7 +17,7 @@ Install
 
     [Download] precompiled for ar71xx.
 
-    Else build yourself: cd into SDK root, then
+    Else build yourself: cd into [SDK] root, then
 
         pushd package
         git clone https://github.com/clowwindy/ChinaDNS-C.git
@@ -99,4 +99,5 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
