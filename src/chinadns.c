@@ -107,13 +107,13 @@ int main(int argc, char **argv) {
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
   if (0 != parse_args(argc, argv))
-    return 1;
+    return EXIT_FAILURE;
   if (0 != parse_ip_list())
-    return 1;
+    return EXIT_FAILURE;
   if (0 != resolve_dns_servers())
-    return 1;
+    return EXIT_FAILURE;
   if (0 != dns_init_sockets())
-    return 1;
+    return EXIT_FAILURE;
   max_fd = MAX(local_sock, remote_sock) + 1;
 
   while (1) {
@@ -125,25 +125,24 @@ int main(int argc, char **argv) {
     FD_SET(remote_sock, &errorset);
     if (-1 == select(max_fd, &readset, NULL, &errorset, NULL)) {
       ERR("select");
-      return 1;
+      return EXIT_FAILURE;
     }
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       VERR("local_sock error\n");
-      return 1;
+      return EXIT_FAILURE;
     }
     if (FD_ISSET(remote_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       VERR("remote_sock error\n");
-      return 1;
+      return EXIT_FAILURE;
     }
     if (FD_ISSET(local_sock, &readset))
       dns_handle_local();
     if (FD_ISSET(remote_sock, &readset))
       dns_handle_remote();
   }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 int setnonblock(int sock) {
@@ -151,24 +150,22 @@ int setnonblock(int sock) {
   flags = fcntl(local_sock, F_GETFL, 0);
   if(flags == -1) {
     ERR("fcntl");
-    return 1;
+    return -1;
   }
   fcntl(local_sock, F_SETFL, flags | O_NONBLOCK);
   if(flags == -1) {
     ERR("fcntl");
-    return 1;
+    return -1;
   }
   return 0;
 }
 
 int parse_args(int argc, char **argv) {
   int ch;
-
   dns_servers = strdup(default_dns_servers);
   ip_list_file = strdup(default_ip_list_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-
   while ((ch = getopt(argc, argv, "hb:p:s:l:")) != -1) {
     switch (ch) {
     case 'h':
@@ -217,7 +214,7 @@ int resolve_dns_servers() {
   while (token) {
     if (0 != (r = getaddrinfo(token, "53", &hints, &addr_ip))) {
       VERR("%s:%s\n", gai_strerror(r), token);
-      return 1;
+      return -1;
     }
     dns_server_addrs[i].addr = addr_ip->ai_addr;
     dns_server_addrs[i].addrlen = addr_ip->ai_addrlen;
@@ -245,7 +242,7 @@ int parse_ip_list() {
   if (fp == NULL) {
     ERR("fopen");
     VERR("Can't open ip list: %s\n", ip_list_file);
-    return 1;
+    return -1;
   }
   while ((read = getline(&line, &len, fp)) != -1) {
     ip_list.entries++;
@@ -264,7 +261,6 @@ int parse_ip_list() {
     free(line);
 
   qsort(ip_list.ips, ip_list.entries, sizeof(struct in_addr), cmp_in_addr);
-
   fclose(fp);
   return 0;
 }
@@ -276,23 +272,21 @@ int dns_init_sockets() {
 
   local_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (0 != setnonblock(local_sock))
-    return 1;
-
+    return -1;
   memset(&addr, 0, sizeof(addr));
   if (0 != (r = getaddrinfo(listen_addr, listen_port, &addr, &addr_ip))) {
     VERR("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
-    return 1;
+    return -1;
   }
   if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen)) {
     ERR("bind");
     VERR("Can't bind address %s:%s\n", listen_addr, listen_port);
-    return 1;
+    return -1;
   }
   freeaddrinfo(addr_ip);
   remote_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (0 != setnonblock(remote_sock))
-    return 1;
-
+    return -1;
   return 0;
 }
 
@@ -438,7 +432,7 @@ int should_filter_query(ns_msg msg) {
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
       if (r)
-        return 1;
+        return -1;
     }
   }
   return 0;
