@@ -3,7 +3,7 @@
 
 START=90
 STOP=15
-EXTRA_COMMANDS="reload"
+EXTRA_COMMANDS="restart"
 
 start()
 {
