@@ -7,6 +7,5 @@ os:
 compiler:
   - clang
   - gcc
-  - g++
 
 script: make
