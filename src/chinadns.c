@@ -254,7 +254,17 @@ static int resolve_dns_servers() {
   hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
   token = strtok(dns_servers, ",");
   while (token) {
-    if (0 != (r = getaddrinfo(token, "53", &hints, &addr_ip))) {
+    char *port;
+    memset(global_buf, 0, BUF_SIZE);
+    strncpy(global_buf, token, BUF_SIZE - 1);
+    port = (strrchr(global_buf, ':'));
+    if (port) {
+      *port = '\0';
+      port++;
+    } else {
+      port = "53";
+    }
+    if (0 != (r = getaddrinfo(global_buf, port, &hints, &addr_ip))) {
       VERR("%s:%s\n", gai_strerror(r), token);
       return -1;
     }
@@ -351,7 +361,7 @@ static void dns_handle_local() {
     // TODO generate id for each request to avoid conflicts
     query_id = ns_msg_id(msg);
     question_hostname = hostname_from_question(msg);
-    LOG("request: %s\n", question_hostname);
+    LOG("request %s\n", question_hostname);
     id_addr_t id_addr;
     id_addr.id = query_id;
     id_addr.addr = src_addr;
@@ -388,8 +398,9 @@ static void dns_handle_remote() {
     id_addr_t *id_addr = queue_lookup(query_id);
     id_addr->addr->sa_family = AF_INET;
     question_hostname = hostname_from_question(msg);
-    LOG("response %s from %s: ", question_hostname,
-           inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr));
+    LOG("response %s from %s:%d - ", question_hostname,
+           inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
+           htons(((struct sockaddr_in *)src_addr)->sin_port));
     free(src_addr);
     if (id_addr) {
       r = should_filter_query(msg);
