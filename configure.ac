@@ -13,8 +13,9 @@ AC_PROG_CC
 AC_PROG_INSTALL
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lresolv':
-AC_CHECK_LIB([resolv], [main])
+AC_CHECK_LIB(resolv, res_query, [],
+    [AC_CHECK_LIB(resolv, __res_query, [],
+        [AC_MSG_ERROR([libresolv not found.])])])
 
 # Checks for header files.
 AC_HEADER_RESOLV
