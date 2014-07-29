@@ -8,4 +8,6 @@ compiler:
   - clang
   - gcc
 
-script: make
+script:
+  - ./configure
+  - make
