@@ -29,7 +29,7 @@ AC_TYPE_UINT16_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup])
+AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
