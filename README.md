@@ -11,7 +11,10 @@ Install
 
 * Linux / Unix
 
-        make
+    Download a [release].
+
+        ./configure && make
+        src/chinadns -l iplist.txt
 
 * OpenWRT
 
@@ -99,5 +102,6 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[release]:         https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C

@@ -11,6 +11,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 typedef struct {
   time_t ts;
   char *buf;
@@ -36,7 +40,11 @@ static char global_buf[BUF_SIZE];
 
 static int verbose = 0;
 
-static const char *version = "ChinaDNS 1.0.0";
+#if defined(PACKAGE_STRING)
+static const char *version = PACKAGE_STRING;
+#else
+static const char *version = "ChinaDNS";
+#endif
 
 static const char *default_dns_servers =
   "114.114.114.114,8.8.8.8,208.67.222.222";
