@@ -395,14 +395,16 @@ static void dns_handle_remote() {
     // parse DNS query id
     // TODO assign new id instead of using id from clients
     query_id = ns_msg_id(msg);
-    id_addr_t *id_addr = queue_lookup(query_id);
-    id_addr->addr->sa_family = AF_INET;
     question_hostname = hostname_from_question(msg);
-    LOG("response %s from %s:%d - ", question_hostname,
-           inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
-           htons(((struct sockaddr_in *)src_addr)->sin_port));
+    if (question_hostname) {
+      LOG("response %s from %s:%d - ", question_hostname,
+          inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
+          htons(((struct sockaddr_in *)src_addr)->sin_port));
+    }
     free(src_addr);
+    id_addr_t *id_addr = queue_lookup(query_id);
     if (id_addr) {
+      id_addr->addr->sa_family = AF_INET;
       r = should_filter_query(msg);
       if (r == 0) {
         if (verbose)
