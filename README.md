@@ -3,7 +3,7 @@ ChinaDNS-C
 
 [![Build Status]][Travis CI]
 
-A DNS forwarder that ignores incorrect(you knew it) responses. This is a port
+A DNS forwarder that filters bad IPs. This is a port
 of [ChinaDNS] to C.
 
 Install
