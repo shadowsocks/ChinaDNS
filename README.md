@@ -3,8 +3,8 @@ ChinaDNS-C
 
 [![Build Status]][Travis CI]
 
-A DNS forwarder that filters bad IPs. This is a port
-of [ChinaDNS] to C.
+A DNS forwarder that filters [bad IPs]. Quite useful if you live in China.
+This is a port of [ChinaDNS] to C.
 
 Install
 -------
@@ -98,6 +98,8 @@ Please visit [Issue Tracker]
 
 Mailing list: http://groups.google.com/group/shadowsocks
 
+
+[bad IPs]:         https://github.com/clowwindy/ChinaDNS-C/blob/master/iplist.txt
 [Build Status]:    https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
