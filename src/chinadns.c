@@ -279,6 +279,7 @@ static int resolve_dns_servers() {
 static int cmp_in_addr(const void *a, const void *b) {
   struct in_addr *ina = (struct in_addr *)a;
   struct in_addr *inb = (struct in_addr *)b;
+  LOG("cmp: %u\t%u\n", ina->s_addr, inb->s_addr);
   return ina->s_addr - inb->s_addr;
 }
 
@@ -304,7 +305,9 @@ static int parse_ip_list() {
   line = NULL;
 
   ip_list.ips = calloc(ip_list.entries, sizeof(struct in_addr));
-  fseek(fp, 0, SEEK_SET);
+  if (0 != fseek(fp, 0, SEEK_SET)) {
+    VERR("fseek");
+  }
   while ((read = getline(&line, &len, fp)) != -1) {
     inet_aton(line, &ip_list.ips[i]);
     i++;
@@ -312,6 +315,7 @@ static int parse_ip_list() {
   if (line)
     free(line);
 
+  LOG("%d ips loaded\n", ip_list.entries);
   qsort(ip_list.ips, ip_list.entries, sizeof(struct in_addr), cmp_in_addr);
   fclose(fp);
   return 0;
