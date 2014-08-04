@@ -493,6 +493,7 @@ static int should_filter_query(ns_msg msg) {
     if (type == ns_t_a) {
       if (verbose)
         printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
+      LOG("entries: %d\n", ip_list.entries);
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
       if (r)
