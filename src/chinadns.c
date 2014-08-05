@@ -280,7 +280,11 @@ static int cmp_in_addr(const void *a, const void *b) {
   struct in_addr *ina = (struct in_addr *)a;
   struct in_addr *inb = (struct in_addr *)b;
   LOG("cmp: %u\t%u\n", ina->s_addr, inb->s_addr);
-  return ina->s_addr - inb->s_addr;
+  if (ina->s_addr == inb->s_addr)
+    return 0;
+  if (ina->s_addr > inb->s_addr)
+    return 1;
+  return -1;
 }
 
 static int parse_ip_list() {
@@ -307,6 +311,7 @@ static int parse_ip_list() {
   ip_list.ips = calloc(ip_list.entries, sizeof(struct in_addr));
   if (0 != fseek(fp, 0, SEEK_SET)) {
     VERR("fseek");
+    return -1;
   }
   while ((read = getline(&line, &len, fp)) != -1) {
     inet_aton(line, &ip_list.ips[i]);
