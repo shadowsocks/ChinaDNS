@@ -279,7 +279,6 @@ static int resolve_dns_servers() {
 static int cmp_in_addr(const void *a, const void *b) {
   struct in_addr *ina = (struct in_addr *)a;
   struct in_addr *inb = (struct in_addr *)b;
-  LOG("cmp: %u\t%u\n", ina->s_addr, inb->s_addr);
   if (ina->s_addr == inb->s_addr)
     return 0;
   if (ina->s_addr > inb->s_addr)
@@ -502,7 +501,6 @@ static int should_filter_query(ns_msg msg) {
     if (type == ns_t_a) {
       if (verbose)
         printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
-      LOG("entries: %d\n", ip_list.entries);
       r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
       if (r)
