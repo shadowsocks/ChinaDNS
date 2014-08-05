@@ -320,7 +320,6 @@ static int parse_ip_list() {
     free(line);
 
   qsort(ip_list.ips, ip_list.entries, sizeof(struct in_addr), cmp_in_addr);
-  LOG("%d ips loaded\n", ip_list.entries);
   fclose(fp);
   return 0;
 }
