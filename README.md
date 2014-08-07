@@ -18,7 +18,7 @@ Install
 
 * OpenWRT
 
-    [Download] precompiled for ar71xx.
+    [Download] precompiled for CPU: ar71xx, brcm63xx, brcm47xx, ramips_24kec.
 
     Else build yourself: cd into [SDK] root, then
 
