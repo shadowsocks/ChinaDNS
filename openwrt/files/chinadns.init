@@ -1,4 +1,4 @@
-#!/bin/sh /etc/rc.common                                                                                                                                                             
+#!/bin/sh /etc/rc.common
 # chinadns init script
 
 START=90
@@ -9,6 +9,7 @@ start()
 {
     chinadns \
         -l /etc/chinadns_iplist.txt \
+        -c /etc/chinadns_chnroute.txt \
         -p 5353 \
         1> /tmp/log/chinadns.log \
         2> /tmp/log/chinadns.err.log &

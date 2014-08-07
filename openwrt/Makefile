@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ChinaDNS-C
-PKG_VERSION:=1.0.4
+PKG_VERSION:=1.1.0
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_URL:=https://github.com/clowwindy/ChinaDNS-C/releases/download/$(PKG_VERSION)
@@ -34,11 +34,13 @@ endef
 
 define Package/ChinaDNS-C/conffiles
 /etc/chinadns_iplist.txt
+/etc/chinadns_chnroute.txt
 endef
 
 define Package/ChinaDNS-C/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_CONF) ../iplist.txt $(1)/etc/chinadns_iplist.txt
+	$(INSTALL_CONF) ../chnroute.txt $(1)/etc/chinadns_chnroute.txt
 	$(INSTALL_BIN) ./files/chinadns.init $(1)/etc/init.d/chinadns
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/chinadns $(1)/usr/bin
