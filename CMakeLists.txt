@@ -2,8 +2,10 @@ cmake_minimum_required (VERSION 2.6.0)
 
 project ( chinadns-openwrt )
 
-OPTION(WITH_DEBUG "debugging support" OFF)
-OPTION(WITH_UCI "OpenWRT UCI support" ON)
+option(WITH_DEBUG "debugging support" off)
+option(WITH_UCI "OpenWRT UCI support" on)
+set(UCI_NAME "chinadns" CACHE STRING "UCI Config Name")
+
 
 include_directories (
         ${CMAKE_CURRENT_SOURCE_DIR}/src
