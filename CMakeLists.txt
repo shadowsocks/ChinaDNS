@@ -7,12 +7,12 @@ OPTION(WITH_UCI "OpenWRT UCI support" ON)
 
 include_directories (
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${PROJECT_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
     )
 
 configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
-    "${PROJECT_BINARY_DIR}/config.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/config.h"
     )
 
 set (HDR
