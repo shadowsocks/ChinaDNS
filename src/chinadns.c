@@ -12,6 +12,9 @@
 #include <sys/types.h>
 
 #include "config.h"
+#if defined(WITH_UCI)
+#include "uci.h"
+#endif
 
 typedef struct {
   time_t ts;
@@ -33,7 +36,10 @@ typedef struct {
 } ip_list_t;
 
 // avoid malloc and free
+#ifndef BUF_SIZE
 #define BUF_SIZE 2048
+#endif
+
 static char global_buf[BUF_SIZE];
 
 static int verbose = 0;
@@ -137,6 +143,11 @@ int main(int argc, char **argv) {
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
   memset(&delay_queue, 0, sizeof(delay_queue));
+
+#if defined(WITH_UCI)
+  parse_uci_args(UCI_NAME);
+#endif
+
   if (0 != parse_args(argc, argv))
     return EXIT_FAILURE;
   if (0 != parse_ip_list())
