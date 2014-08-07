@@ -14,7 +14,7 @@ Install
     Download a [release].
 
         ./configure && make
-        src/chinadns -l iplist.txt
+        src/chinadns -l iplist.txt -c chnroute.txt
 
 * OpenWRT
 
@@ -88,6 +88,14 @@ Advanced
     -s DNS                DNS servers to use, default:
                           114.114.114.114,208.67.222.222,8.8.8.8
     -v                    verbose logging
+
+About chnroute
+--------------
+
+You can generate latest chnroute.txt using this command:
+
+    curl 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv4 | grep CN | awk -F\| '{ print $4, $5 }' > chnroute.txt
+
 
 License
 -------
