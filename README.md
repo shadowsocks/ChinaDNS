@@ -77,11 +77,12 @@ Advanced
 --------
 
     usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]
-           [-s DNS] [-v]
+           [-c CHNROUTE_FILE] [-s DNS] [-v]
     Forward DNS requests.
 
     -h, --help            show this help message and exit
     -l IPLIST_FILE        path to ip blacklist file
+    -c CHNROUTE_FILE      path to china route file
     -b BIND_ADDR          address that listens, default: 127.0.0.1
     -p BIND_PORT          port that listens, default: 53
     -s DNS                DNS servers to use, default:
