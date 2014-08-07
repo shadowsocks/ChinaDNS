@@ -90,7 +90,7 @@ static void dns_handle_local();
 static void dns_handle_remote();
 
 static const char *hostname_from_question(ns_msg msg);
-static int should_filter_query(ns_msg msg);
+static int should_filter_query(ns_msg msg, struct in_addr dns_addr);
 
 static void queue_add(id_addr_t id_addr);
 static id_addr_t *queue_lookup(uint16_t id);
@@ -405,24 +405,6 @@ static int parse_chnroute() {
   qsort(chnroute_list.nets, chnroute_list.entries, sizeof(net_mask_t),
         cmp_net_mask);
 
-  // test code
-  for (i = 0; i < chnroute_list.entries; i++) {
-    DLOG("%s, %di\n", inet_ntoa(chnroute_list.nets[i].net),
-        chnroute_list.nets[i].mask);
-  }
-  struct in_addr test_ip;
-  //inet_aton("8.8.8.8", &test_ip);
-  //inet_aton("114.114.114.114", &test_ip);
-  // taobao:
-  //inet_aton("42.120.194.11", &test_ip);
-  // google:
-  //inet_aton("173.194.127.41", &test_ip);
-  // twitter:
-  //inet_aton("199.59.150.39", &test_ip);
-  int test = test_ip_in_list(test_ip, &chnroute_list);
-  DLOG("%d\n", test);
-  // test code
-
   fclose(fp);
   return 0;
 }
@@ -431,6 +413,8 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
   // binary search
   int l = 0, r = netlist->entries - 1;
   int m, cmp;
+  if (netlist->entries == 0)
+    return 0;
   net_mask_t ip_net;
   ip_net.net = ip;
   while (l != r) {
@@ -451,7 +435,6 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
     DLOG("%s, %d\n", inet_ntoa(netlist->nets[m].net),
          netlist->nets[m].mask);
   }
-  DLOG("%d\n", ntohl(netlist->nets[l].net.s_addr ^ ip.s_addr));
   if ((ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)) &
       (0xFFFF - netlist->nets[l].mask)) {
     return 0;
@@ -543,11 +526,10 @@ static void dns_handle_remote() {
           inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
           htons(((struct sockaddr_in *)src_addr)->sin_port));
     }
-    free(src_addr);
     id_addr_t *id_addr = queue_lookup(query_id);
     if (id_addr) {
       id_addr->addr->sa_family = AF_INET;
-      r = should_filter_query(msg);
+      r = should_filter_query(msg, ((struct sockaddr_in *)src_addr)->sin_addr);
       if (r == 0) {
         if (verbose)
           printf("pass\n");
@@ -566,6 +548,7 @@ static void dns_handle_remote() {
       if (verbose)
         printf("skip\n");
     }
+    free(src_addr);
   }
   else
     ERR("recvfrom");
@@ -616,10 +599,13 @@ static const char *hostname_from_question(ns_msg msg) {
   return NULL;
 }
 
-static int should_filter_query(ns_msg msg) {
+static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
   ns_rr rr;
   int rrnum, rrmax;
   void *r;
+  // TODO cache result for each dns server
+  int dns_is_chn = (dns_servers_len > 1) &&
+    test_ip_in_list(dns_addr, &chnroute_list);
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
     return -1;
@@ -639,6 +625,11 @@ static int should_filter_query(ns_msg msg) {
                   cmp_in_addr);
       if (r)
         return 1;
+      if (dns_is_chn) {
+        // filter DNS result from chn dns if result is outside chn
+        if (!test_ip_in_list(*(struct in_addr *)rd, &chnroute_list))
+          return 1;
+      }
     }
   }
   return 0;
