@@ -1,0 +1,4 @@
+
+#cmakedefine WITH_UCI ${WITH_UCI}
+
+#cmakedefine WITH_DEBUG ${WITH_DEBUG}
