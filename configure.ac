@@ -31,5 +31,11 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
+AC_ARG_ENABLE([debug],
+    [  --enable-debug           build with additional debugging code],
+    [CFLAGS='-g';AC_DEFINE([DEBUG])])
+
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
