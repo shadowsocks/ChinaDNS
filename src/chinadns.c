@@ -393,9 +393,9 @@ static int parse_chnroute() {
     return -1;
   }
   while ((read = getline(&line, &len, fp)) != -1) {
-    char *sp_pos = strchr(line, ' ');
+    char *sp_pos = strchr(line, '/');
     *sp_pos = 0;
-    chnroute_list.nets[i].mask = atoi(sp_pos + 1) - 1;
+    chnroute_list.nets[i].mask = (1 << (32 - atoi(sp_pos + 1))) - 1;
     inet_aton(line, &chnroute_list.nets[i].net);
     i++;
   }
