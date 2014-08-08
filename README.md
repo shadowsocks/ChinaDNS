@@ -18,15 +18,17 @@ Install
 
 * OpenWRT
 
-    [Download] precompiled for CPU: ar71xx, brcm63xx, brcm47xx, ramips_24kec.
+    * Download [precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
+      brcm47xx, ramips_24kec.
 
-    Else build yourself: cd into [SDK] root, then
+    * If you use other CPU or other OpenWRT versions, build yourself:
+      cd into [SDK] root, then
 
-        pushd package
-        git clone https://github.com/clowwindy/ChinaDNS-C.git
-        popd
-        make menuconfig # select Network/ChinaDNS
-        make
+            pushd package
+            git clone https://github.com/clowwindy/ChinaDNS-C.git
+            popd
+            make menuconfig # select Network/ChinaDNS
+            make
 
 * Windows
 
@@ -42,7 +44,7 @@ Usage
 
 * OpenWRT
 
-        opkg install ChinaDNS-C_1.0.0_ar71xx.ipk
+        opkg install ChinaDNS-C_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
 
 Test if it works correctly:
@@ -113,6 +115,7 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[precompiled]:     https://sourceforge.net/projects/chinadns/files/dist/
 [release]:         https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
