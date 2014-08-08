@@ -3,8 +3,8 @@ ChinaDNS-C
 
 [![Build Status]][Travis CI]
 
-A DNS forwarder that filters [bad IPs]. Quite useful if you live in China.
-This is a port of [ChinaDNS] to C.
+Fix [weird things] with DNS in China.
+This is a port of [ChinaDNS] to C, especially for OpenWRT.
 
 Install
 -------
@@ -116,3 +116,4 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [release]:         https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
+[weird things]:    http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
