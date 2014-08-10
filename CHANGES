@@ -1,3 +1,6 @@
+1.1.2 2014-08-11
+- Fix mask > 0xFFFF with chnroute
+
 1.1.1 2014-08-08
 - Use CIDR format in chnroute.txt
 
