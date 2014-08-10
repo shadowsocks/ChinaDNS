@@ -438,7 +438,7 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
   DLOG("result: %x\n", (ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)));
   DLOG("mask: %x\n", (UINT32_MAX - netlist->nets[l].mask));
   if ((ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)) &
-      (UINT32_MAX - netlist->nets[l].mask)) {
+      (UINT32_MAX ^ netlist->nets[l].mask)) {
     return 0;
   }
   return 1;
