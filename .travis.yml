@@ -9,8 +9,7 @@ compiler:
   - gcc
 
 before_script:
-  - ./autogen.sh
-  - ./configure
+  - ./cmake -DWITH_UCI:BOOL=OFF
 
 script:
   - make
