@@ -1,18 +1,22 @@
 language: c
 
-install: make get-deps cmake
-
 os:
   - linux
   - osx
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install cmake
 
 compiler:
   - clang
   - gcc
 
 before_script:
-  - ./cmake -DWITH_UCI:BOOL=OFF .
+  - mkdir _build
+  - cd _build
+  - ./cmake -DWITH_UCI:BOOL=OFF ..
+  - make
 
 script:
-  - make
   - ./chinadns -h
