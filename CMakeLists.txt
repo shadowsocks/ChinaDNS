@@ -1,44 +1,44 @@
-cmake_minimum_required (VERSION 2.6.0)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.6.0)
 
-project ( chinadns-openwrt )
+PROJECT (chinadns-openwrt)
 
-option(WITH_DEBUG "debugging support" off)
-option(WITH_UCI "OpenWRT UCI support" on)
-set(UCI_NAME "chinadns" CACHE STRING "UCI Config Name")
+OPTION (WITH_DEBUG "debugging support" OFF)
+OPTION (WITH_UCI "OpenWRT UCI support" ON)
+SET (UCI_NAME "chinadns" CACHE STRING "UCI Config Name")
 
-if(WITH_DEBUG)
+IF (WITH_DEBUG)
     # gdb DEBUG
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
-endif()
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
+ENDIF ()
 
-include_directories (
+INCLUDE_DIRECTORIES (
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-configure_file (
+CONFIGURE_FILE (
     "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/config.h"
     )
 
-set (HDR
+SET (HDR
     )
 
-set (SRC_chinadns
+SET (SRC_chinadns
         ${CMAKE_CURRENT_SOURCE_DIR}/src/chinadns.c
     )
 
 
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
-add_executable(chinadns ${SRC_chinadns} ${HDR})
+ADD_EXECUTABLE (chinadns ${SRC_chinadns} ${HDR})
 
-if(WITH_UCI)
-    find_package( UCI REQUIRED )
-    include_directories( ${UCI_INCLUDE_DIR} )
-    target_link_libraries( chinadns ${UCI_LIBRARIES})
-endif()
+IF (WITH_UCI)
+    FIND_PACKAGE (UCI REQUIRED )
+    INCLUDE_DIRECTORIES (${UCI_INCLUDE_DIR} )
+    TARGET_LINK_LIBRARIES (chinadns ${UCI_LIBRARIES})
+ENDIF ()
 
-target_link_libraries( chinadns resolv)
+TARGET_LINK_LIBRARIES (chinadns resolv)
