@@ -9,7 +9,7 @@ compiler:
   - gcc
 
 before_script:
-  - ./cmake -DWITH_UCI:BOOL=OFF
+  - ./cmake -DWITH_UCI:BOOL=OFF .
 
 script:
   - make
