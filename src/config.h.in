@@ -1,6 +1,6 @@
 
 #cmakedefine WITH_UCI ${WITH_UCI}
 
-#cmakedefine UCI_NAME ${UCI_NAME}
+#cmakedefine UCI_NAME "${UCI_NAME}"
 
 #cmakedefine WITH_DEBUG ${WITH_DEBUG}
