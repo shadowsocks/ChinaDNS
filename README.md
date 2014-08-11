@@ -3,8 +3,8 @@ ChinaDNS-C
 
 [![Build Status]][Travis CI]
 
-A DNS forwarder that filters [bad IPs]. Quite useful if you live in China.
-This is a port of [ChinaDNS] to C.
+Fix [weird things] with DNS in China.
+This is a port of [ChinaDNS] to C, especially for OpenWRT.
 
 Install
 -------
@@ -14,19 +14,21 @@ Install
     Download a [release].
 
         ./configure && make
-        src/chinadns -l iplist.txt
+        src/chinadns -l iplist.txt -c chnroute.txt
 
 * OpenWRT
 
-    [Download] precompiled for ar71xx.
+    * Download [precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
+      brcm47xx, ramips_24kec.
 
-    Else build yourself: cd into [SDK] root, then
+    * If you use other CPU or other OpenWRT versions, build yourself:
+      cd into [SDK] root, then
 
-        pushd package
-        git clone https://github.com/clowwindy/ChinaDNS-C.git
-        popd
-        make menuconfig # select Network/ChinaDNS
-        make
+            pushd package
+            git clone https://github.com/clowwindy/ChinaDNS-C.git
+            popd
+            make menuconfig # select Network/ChinaDNS
+            make
 
 * Windows
 
@@ -42,7 +44,7 @@ Usage
 
 * OpenWRT
 
-        opkg install ChinaDNS-C_1.0.0_ar71xx.ipk
+        opkg install ChinaDNS-C_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
 
 Test if it works correctly:
@@ -77,16 +79,25 @@ Advanced
 --------
 
     usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]
-           [-s DNS] [-v]
+           [-c CHNROUTE_FILE] [-s DNS] [-v]
     Forward DNS requests.
 
     -h, --help            show this help message and exit
     -l IPLIST_FILE        path to ip blacklist file
+    -c CHNROUTE_FILE      path to china route file
     -b BIND_ADDR          address that listens, default: 127.0.0.1
     -p BIND_PORT          port that listens, default: 53
     -s DNS                DNS servers to use, default:
                           114.114.114.114,208.67.222.222,8.8.8.8
     -v                    verbose logging
+
+About chnroute
+--------------
+
+You can generate latest chnroute.txt using this command:
+
+    curl 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv4 | grep CN | awk -F\| '{ printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > chnroute.txt
+
 
 License
 -------
@@ -104,6 +115,8 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
 [Download]:        https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[precompiled]:     https://sourceforge.net/projects/chinadns/files/dist/
 [release]:         https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
+[weird things]:    http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods

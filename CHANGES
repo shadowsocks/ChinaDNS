@@ -1,4 +1,14 @@
+1.1.2 2014-08-11
+- Fix mask > 0xFFFF with chnroute
+
+1.1.1 2014-08-08
+- Use CIDR format in chnroute.txt
+
+1.1.0 2014-08-07
+- Support chnroute
+
 1.0.4 2014-08-05
+- Fix IP filter random failures
 - cmake instead of autoconf
 
 1.0.3 2014-07-29
