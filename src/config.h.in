@@ -4,3 +4,5 @@
 #cmakedefine UCI_NAME "${UCI_NAME}"
 
 #cmakedefine WITH_DEBUG ${WITH_DEBUG}
+
+#cmakedefine WITH_CHN_ROUTE ${WITH_CHN_ROUTE}
