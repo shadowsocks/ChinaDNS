@@ -14,6 +14,8 @@
 #include "config.h"
 #if defined(WITH_UCI)
 #include "uci.h"
+static void parse_uci_args(char * uci_name) ;
+#include "parse_uci.c"
 #endif
 
 typedef struct {
