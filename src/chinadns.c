@@ -12,11 +12,7 @@
 #include <sys/types.h>
 
 #include "config.h"
-#if defined(WITH_UCI)
-#include "uci.h"
-static void parse_uci_args(char * uci_name) ;
-#include "parse_uci.c"
-#endif
+
 
 typedef struct {
   time_t ts;
@@ -54,6 +50,9 @@ typedef struct {
 #endif
 
 static char global_buf[BUF_SIZE];
+
+// chinadns service enabled , uci config
+static int enabled = 1;
 
 static int verbose = 0;
 
@@ -163,6 +162,14 @@ static const char *help_message =
 #define DLOG(s...)
 #endif
 
+#if defined(WITH_UCI)
+#include "uci.h"
+static int parse_uci_args (char * uci_name) ;
+static int parse_section (struct uci_context *uci_ctx,
+                            struct uci_section *uci_sec) ;
+#include "parse_uci.c"
+#endif
+
 int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
@@ -171,11 +178,16 @@ int main(int argc, char **argv) {
   memset(&delay_queue, 0, sizeof(delay_queue));
 
 #if defined(WITH_UCI)
-  parse_uci_args(UCI_NAME);
+  if (0 != parse_uci_args(UCI_NAME))
+    return EXIT_FAILURE;
+
+  if (enabled == 0) // uci config service stop
+      return EXIT_SUCCESS;
 #endif
 
   if (0 != parse_args(argc, argv))
     return EXIT_FAILURE;
+
   if (0 != parse_ip_list())
     return EXIT_FAILURE;
   if (0 != parse_chnroute())
@@ -238,11 +250,15 @@ static int setnonblock(int sock) {
 
 static int parse_args(int argc, char **argv) {
   int ch;
-  dns_servers = strdup(default_dns_servers);
+  if (!dns_servers)
+      dns_servers = strdup(default_dns_servers);
+  if (!listen_addr)
+      listen_addr = strdup(default_listen_addr);
+  if (!listen_port)
+      listen_port = strdup(default_listen_port);
+
   ip_list_file = strdup(default_ip_list_file);
   chnroute_file = strdup(default_chnroute_file);
-  listen_addr = strdup(default_listen_addr);
-  listen_port = strdup(default_listen_port);
   while ((ch = getopt(argc, argv, "hb:p:s:l:c:v")) != -1) {
     switch (ch) {
     case 'h':
