@@ -156,13 +156,15 @@ static const char *help_message =
 #define ERR(s) __LOG(stderr, 1, s, "_")
 #define VERR(s...) __LOG(stderr, 0, "_", s)
 
-#ifdef DEBUG
+
+
+#ifdef WITH_DEBUG
 #define DLOG(s...) LOG(s)
 #else
 #define DLOG(s...)
 #endif
 
-#if defined(WITH_UCI)
+#ifdef WITH_UCI
 #include "uci.h"
 static int parse_uci_args (char * uci_name) ;
 static int parse_section (struct uci_context *uci_ctx,
@@ -177,7 +179,7 @@ int main(int argc, char **argv) {
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
   memset(&delay_queue, 0, sizeof(delay_queue));
 
-#if defined(WITH_UCI)
+#ifdef WITH_UCI
   if (0 != parse_uci_args(UCI_NAME))
     return EXIT_FAILURE;
 
