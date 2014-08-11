@@ -83,12 +83,17 @@ static const char *default_ip_list_file = "iplist.txt";
 static char *ip_list_file = NULL;
 static ip_list_t ip_list;
 static int parse_ip_list();
+static int cmp_in_addr(const void *a, const void *b);
 
+#ifdef WITH_CHN_ROUTE
 static const char *default_chnroute_file = "chnroute.txt";
 static char *chnroute_file = NULL;
 static net_list_t chnroute_list;
 static int parse_chnroute();
 static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist);
+static int cmp_net_mask(const void *a, const void *b);
+#endif
+
 
 static int dns_init_sockets();
 static void dns_handle_local();
@@ -122,12 +127,14 @@ static int remote_sock;
 
 static const char *help_message =
   "usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n"
-  "       [-c CHNROUTE_FILE] [-s DNS] [-v]\n"
+  "        [-s DNS] [-v]\n"
   "Forward DNS requests.\n"
   "\n"
   "  -h, --help            show this help message and exit\n"
   "  -l IPLIST_FILE        path to ip blacklist file\n"
+#ifdef WITH_CHN_ROUTE
   "  -c CHNROUTE_FILE      path to china route file\n"
+#endif
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
@@ -192,8 +199,12 @@ int main(int argc, char **argv) {
 
   if (0 != parse_ip_list())
     return EXIT_FAILURE;
+
+#ifdef WITH_CHN_ROUTE
   if (0 != parse_chnroute())
     return EXIT_FAILURE;
+#endif
+
   if (0 != resolve_dns_servers())
     return EXIT_FAILURE;
   if (0 != dns_init_sockets())
@@ -259,8 +270,12 @@ static int parse_args(int argc, char **argv) {
   if (!listen_port)
       listen_port = strdup(default_listen_port);
 
+#ifndef WITH_UCI
   ip_list_file = strdup(default_ip_list_file);
+#ifdef WITH_CHN_ROUTE
   chnroute_file = strdup(default_chnroute_file);
+#endif
+#endif
   while ((ch = getopt(argc, argv, "hb:p:s:l:c:v")) != -1) {
     switch (ch) {
     case 'h':
@@ -275,9 +290,11 @@ static int parse_args(int argc, char **argv) {
     case 's':
       dns_servers = strdup(optarg);
       break;
+#ifdef WITH_CHN_ROUTE
     case 'c':
       chnroute_file = strdup(optarg);
       break;
+#endif
     case 'l':
       ip_list_file = strdup(optarg);
       break;
@@ -346,6 +363,12 @@ static int cmp_in_addr(const void *a, const void *b) {
 }
 
 static int parse_ip_list() {
+
+#ifdef WITH_UCI
+  if (!ip_list_file){
+      return 0;
+  }
+#endif
   FILE * fp;
   char * line = NULL;
   size_t len = 0;
@@ -366,6 +389,7 @@ static int parse_ip_list() {
     free(line);
   line = NULL;
 
+    /* TODO free old ip_list ???? */
   ip_list.ips = calloc(ip_list.entries, sizeof(struct in_addr));
   if (0 != fseek(fp, 0, SEEK_SET)) {
     VERR("fseek");
@@ -394,7 +418,13 @@ static int cmp_net_mask(const void *a, const void *b) {
   return -1;
 }
 
+#ifdef WITH_CHN_ROUTE
 static int parse_chnroute() {
+#ifdef WITH_UCI
+  if (!chnroute_file){
+      return 0;
+  }
+#endif
   FILE * fp;
   char * line = NULL;
   size_t len = 0;
@@ -416,6 +446,7 @@ static int parse_chnroute() {
     free(line);
   line = NULL;
 
+  /* TODO free old chnroute_list ???? */
   chnroute_list.nets = calloc(chnroute_list.entries, sizeof(net_mask_t));
   if (0 != fseek(fp, 0, SEEK_SET)) {
     VERR("fseek");
@@ -437,7 +468,9 @@ static int parse_chnroute() {
   fclose(fp);
   return 0;
 }
+#endif
 
+#ifdef WITH_CHN_ROUTE
 static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
   // binary search
   int l = 0, r = netlist->entries - 1;
@@ -472,6 +505,7 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
   }
   return 1;
 }
+#endif
 
 static int dns_init_sockets() {
   struct addrinfo addr;
@@ -486,6 +520,7 @@ static int dns_init_sockets() {
     VERR("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
     return -1;
   }
+  DLOG("dns local bind: %s:%s \n", listen_addr, listen_port);
   if (0 != bind(local_sock, addr_ip->ai_addr, addr_ip->ai_addrlen)) {
     ERR("bind");
     VERR("Can't bind address %s:%s\n", listen_addr, listen_port);
@@ -635,8 +670,10 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
   int rrnum, rrmax;
   void *r;
   // TODO cache result for each dns server
+#ifdef WITH_CHN_ROUTE
   int dns_is_chn = (dns_servers_len > 1) &&
     test_ip_in_list(dns_addr, &chnroute_list);
+#endif
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
     return -1;
@@ -656,11 +693,13 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
                   cmp_in_addr);
       if (r)
         return 1;
+#ifdef WITH_CHN_ROUTE
       if (dns_is_chn) {
         // filter DNS result from chn dns if result is outside chn
         if (!test_ip_in_list(*(struct in_addr *)rd, &chnroute_list))
           return 1;
       }
+#endif
     }
   }
   return 0;
