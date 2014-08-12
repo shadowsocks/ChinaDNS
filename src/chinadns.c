@@ -1,4 +1,3 @@
-#include <netinet/in.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <resolv.h>
@@ -8,61 +7,12 @@
 #include <time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <arpa/nameser.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
-#ifndef HAVE_GETLINE
-/* Note by Paul Rombouts: I know that getline is a GNU extension and is not really portable,
-   but the alternative standard functions have some real problems.
-   The following substitute does not have exactly the same semantics as the GNU getline,
-   but it should be good enough, as long as the stream doesn't contain any null chars.
-   This version is actually based on fgets_realloc() that I found in the WWWOFFLE source.
-*/
-
-#define BUFSIZE 2048
-int getline(char **lineptr, size_t *n, FILE *stream)
-{
-  char *line=*lineptr;
-  size_t sz=*n,i;
-
-  if(!line || sz<BUFSIZE) {
-    sz=BUFSIZE;
-    line = realloc(line,sz);
-    if(!line) return -1;
-    *lineptr=line;
-    *n=sz;
-  }
-
-  for (i=0;;) {
-    char *lni;
-
-    if(!(lni=fgets(line+i,sz-i,stream))) {
-      if(i && feof(stream))
-        break;
-      else
-        return -1;
-    }
-
-    i += strlen(lni);
-
-    if(i<sz-1 || line[i-1]=='\n')
-      break;
-
-    sz += BUFSIZE;
-    line = realloc(line,sz);
-    if(!line) return -1;
-    *lineptr=line;
-    *n=sz;
-  }
-
-  return i;
-}
-#undef BUFSIZE
 #endif
 
 typedef struct {
