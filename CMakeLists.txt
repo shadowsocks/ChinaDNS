@@ -32,7 +32,7 @@ SET (SRC_chinadns
 
 
 SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-    "${CiiiMAKE_CURRENT_SOURCE_DIR}/modules")
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 ADD_EXECUTABLE (chinadns ${SRC_chinadns} ${HDR})
 
