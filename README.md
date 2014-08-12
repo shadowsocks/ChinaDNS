@@ -118,5 +118,5 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [precompiled]:     https://sourceforge.net/projects/chinadns/files/dist/
 [release]:         https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
-[Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
+[Travis CI]:       https://travis-ci.org/cj1324/ChinaDNS-OpenWRT.svg?branch=master
 [weird things]:    http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
