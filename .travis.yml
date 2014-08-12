@@ -4,10 +4,6 @@ os:
   - linux
   - osx
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install cmake
-
 compiler:
   - clang
   - gcc
