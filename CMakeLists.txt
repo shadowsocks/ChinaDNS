@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.6.0)
 PROJECT (chinadns-openwrt)
 
 OPTION (WITH_DEBUG "debugging support" OFF)
-OPTION (WITH_UCI "OpenWRT UCI support" ON)
+OPTION (WITH_UCI "OpenWRT UCI support" OFF)
 SET (UCI_NAME "chinadns" CACHE STRING "UCI Config Name")
 OPTION (WITH_CHN_ROUTE "China Route support" ON)
 

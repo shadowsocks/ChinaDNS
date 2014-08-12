@@ -11,7 +11,7 @@ compiler:
 before_script:
   - mkdir _build
   - cd _build
-  - cmake -DWITH_UCI:BOOL=OFF ..
+  - cmake ..
   - make
 
 script:
