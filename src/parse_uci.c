@@ -36,7 +36,6 @@ static int parse_section (struct uci_context *uci_ctx,
   if (port)
     listen_port=strdup(port);
 
-  /* TODO  NotImplemented  */
   struct uci_element *e;
 
   bool sep = false;
