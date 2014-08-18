@@ -37,5 +37,12 @@ AC_ARG_ENABLE([debug],
 
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
+# Add a option to force static link the target.
+AC_ARG_ENABLE([static],
+    [  --enable-static           build with static link],
+    [LDFLAGS='-static'])
+
+AM_CONDITIONAL(STATIC, test x"$static" = x"true")
+
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
