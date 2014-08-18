@@ -445,15 +445,17 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
 }
 
 static int dns_init_sockets() {
-  struct addrinfo addr;
+  struct addrinfo hints;
   struct addrinfo *addr_ip;
   int r;
 
   local_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (0 != setnonblock(local_sock))
     return -1;
-  memset(&addr, 0, sizeof(addr));
-  if (0 != (r = getaddrinfo(listen_addr, listen_port, &addr, &addr_ip))) {
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_DGRAM;
+  if (0 != (r = getaddrinfo(listen_addr, listen_port, &hints, &addr_ip))) {
     VERR("%s:%s:%s\n", gai_strerror(r), listen_addr, listen_port);
     return -1;
   }
