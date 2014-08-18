@@ -30,6 +30,20 @@ Install
             make menuconfig # select Network/ChinaDNS
             make
 
+* Tomoto
+
+    * Download Tomato toolchain [here], build by yourself.
+
+	  First of all, uncompress the downloaded file to `~/`.
+	  Copy the `brcm` directory under `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
+
+	        export PATH=/opt/brcm/hndtools-mipsel-uclibc/bin/:/opt/brcm/hndtools-mipsel-linux/bin/:$PATH
+            git clone https://github.com/clowwindy/ChinaDNS-C.git
+			cd ChinaDNS-C
+			autogen.sh&&./configure --host=mipsel-linux --enable-static&&make
+			
+      Target will appear in src directory which is named chinadns.
+
 * Windows
 
     [Download] Python exe version.
@@ -120,3 +134,4 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
 [weird things]:    http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
+[here]:            http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
