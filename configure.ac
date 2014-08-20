@@ -27,8 +27,8 @@ AC_TYPE_SSIZE_T
 AC_TYPE_UINT16_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
+# To fix rpl_malloc undefined error in mips cross-compile enviroment.
+AC_CHECK_FUNCS([malloc realloc])
 AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
 AC_ARG_ENABLE([debug],
@@ -36,6 +36,13 @@ AC_ARG_ENABLE([debug],
     [CFLAGS='-g -DDEBUG'])
 
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+
+# Add a option to force static link the target.
+AC_ARG_ENABLE([static],
+    [  --enable-static           build with static link],
+    [LDFLAGS='-static'])
+
+AM_CONDITIONAL(STATIC, test x"$static" = x"true")
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
