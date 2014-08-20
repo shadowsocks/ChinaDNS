@@ -32,7 +32,7 @@ Install
 
 * Tomoto
 
-    * Download Tomato toolchain [here], build by yourself.
+    * Download [Tomato toolchain], build by yourself.
 
 	  First of all, uncompress the downloaded file to `~/`.
 	  Copy the `brcm` directory under `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
@@ -41,7 +41,7 @@ Install
             git clone https://github.com/clowwindy/ChinaDNS-C.git
 			cd ChinaDNS-C
 			autogen.sh&&./configure --host=mipsel-linux --enable-static&&make
-			
+
       Target will appear in src directory which is named chinadns.
 
 * Windows
@@ -125,14 +125,13 @@ Please visit [Issue Tracker]
 Mailing list: http://groups.google.com/group/shadowsocks
 
 
-[bad IPs]:         https://github.com/clowwindy/ChinaDNS-C/blob/master/iplist.txt
-[Build Status]:    https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
-[ChinaDNS]:        https://github.com/clowwindy/ChinaDNS
-[Download]:        https://sourceforge.net/projects/chinadns/files/dist/
-[Issue Tracker]:   https://github.com/clowwindy/ChinaDNS-C/issues?state=open
-[precompiled]:     https://sourceforge.net/projects/chinadns/files/dist/
-[release]:         https://github.com/clowwindy/ChinaDNS-C/releases
-[SDK]:             http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
-[Travis CI]:       https://travis-ci.org/clowwindy/ChinaDNS-C
-[weird things]:    http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
-[here]:            http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
+[Build Status]:     https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
+[ChinaDNS]:         https://github.com/clowwindy/ChinaDNS
+[Download]:         https://sourceforge.net/projects/chinadns/files/dist/
+[Issue Tracker]:    https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[precompiled]:      https://sourceforge.net/projects/chinadns/files/dist/
+[release]:          https://github.com/clowwindy/ChinaDNS-C/releases
+[SDK]:              http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
+[Tomato toolchain]: http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
+[Travis CI]:        https://travis-ci.org/clowwindy/ChinaDNS-C
+[weird things]:     http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
