@@ -34,7 +34,7 @@ Install
     * Download [Tomato toolchain], build by yourself.
     * Uncompress the downloaded file to `~/`.
     * Copy the `brcm` directory under
-        `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
+      `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
 
             export PATH=/opt/brcm/hndtools-mipsel-uclibc/bin/:/opt/brcm/hndtools-mipsel-linux/bin/:$PATH
             git clone https://github.com/clowwindy/ChinaDNS-C.git
