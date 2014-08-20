@@ -1,0 +1,46 @@
+CMAKE_MINIMUM_REQUIRED (VERSION 2.6.0)
+
+PROJECT (chinadns-openwrt)
+
+OPTION (WITH_DEBUG "debugging support" OFF)
+OPTION (WITH_UCI "OpenWRT UCI support" OFF)
+SET (UCI_NAME "chinadns" CACHE STRING "UCI Config Name")
+OPTION (WITH_CHN_ROUTE "China Route support" ON)
+
+IF (WITH_DEBUG)
+    # gdb DEBUG
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -ggdb")
+ENDIF ()
+
+INCLUDE_DIRECTORIES (
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+CONFIGURE_FILE (
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+    )
+
+SET (HDR
+    )
+
+SET (SRC_chinadns
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/chinadns.c
+    )
+
+
+
+SET (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules")
+
+ADD_EXECUTABLE (chinadns ${SRC_chinadns} ${HDR})
+
+IF (WITH_UCI)
+    FIND_PACKAGE (UCI REQUIRED )
+    INCLUDE_DIRECTORIES (${UCI_INCLUDE_DIR} )
+    TARGET_LINK_LIBRARIES (chinadns ${UCI_LIBRARIES})
+ENDIF ()
+TARGET_LINK_LIBRARIES (chinadns resolv)
+
+INSTALL(TARGETS chinadns DESTINATION bin)

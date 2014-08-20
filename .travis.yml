@@ -9,8 +9,10 @@ compiler:
   - gcc
 
 before_script:
-  - ./autogen.sh
-  - ./configure
+  - mkdir _build
+  - cd _build
+  - cmake ..
+  - make
 
 script:
-  - make
+  - ./chinadns -h
