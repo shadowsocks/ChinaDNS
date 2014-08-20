@@ -99,6 +99,7 @@ Advanced
     -h, --help            show this help message and exit
     -l IPLIST_FILE        path to ip blacklist file
     -c CHNROUTE_FILE      path to china route file
+                          if not specified, CHNRoute will be turned off
     -b BIND_ADDR          address that listens, default: 127.0.0.1
     -p BIND_PORT          port that listens, default: 53
     -s DNS                DNS servers to use, default:

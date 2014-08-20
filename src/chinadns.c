@@ -79,7 +79,6 @@ static char *ip_list_file = NULL;
 static ip_list_t ip_list;
 static int parse_ip_list();
 
-static const char *default_chnroute_file = "chnroute.txt";
 static char *chnroute_file = NULL;
 static net_list_t chnroute_list;
 static int parse_chnroute();
@@ -123,6 +122,7 @@ static const char *help_message =
   "  -h, --help            show this help message and exit\n"
   "  -l IPLIST_FILE        path to ip blacklist file\n"
   "  -c CHNROUTE_FILE      path to china route file\n"
+  "                        if not specified, CHNRoute will be turned off\n"
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
@@ -229,7 +229,6 @@ static int parse_args(int argc, char **argv) {
   int ch;
   dns_servers = strdup(default_dns_servers);
   ip_list_file = strdup(default_ip_list_file);
-  chnroute_file = strdup(default_chnroute_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
   while ((ch = getopt(argc, argv, "hb:p:s:l:c:v")) != -1) {
@@ -373,6 +372,11 @@ static int parse_chnroute() {
   char net[32];
   chnroute_list.entries = 0;
   int i = 0;
+
+  if (chnroute_file == NULL) {
+    VERR("CHNROUTE_FILE not specified, CHNRoute is disabled\n");
+    return 0;
+  }
 
   fp = fopen(chnroute_file, "rb");
   if (fp == NULL) {
@@ -608,7 +612,7 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
   int rrnum, rrmax;
   void *r;
   // TODO cache result for each dns server
-  int dns_is_chn = (dns_servers_len > 1) &&
+  int dns_is_chn = chnroute_file && (dns_servers_len > 1) &&
     test_ip_in_list(dns_addr, &chnroute_list);
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
@@ -629,7 +633,7 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
                   cmp_in_addr);
       if (r)
         return 1;
-      if (dns_is_chn) {
+      if (chnroute_file && dns_is_chn) {
         // filter DNS result from chn dns if result is outside chn
         if (!test_ip_in_list(*(struct in_addr *)rd, &chnroute_list))
           return 1;
