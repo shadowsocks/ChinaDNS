@@ -39,7 +39,7 @@ Install
             export PATH=/opt/brcm/hndtools-mipsel-uclibc/bin/:/opt/brcm/hndtools-mipsel-linux/bin/:$PATH
             git clone https://github.com/clowwindy/ChinaDNS-C.git
             cd ChinaDNS-C
-            autogen.sh&&./configure --host=mipsel-linux --enable-static&&make
+            autogen.sh && ./configure --host=mipsel-linux --enable-static && make
 
 * Windows
 
