@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([ChinaDNS-C], [1.1.2], [clowwindy42@gmail.com])
+AC_INIT([ChinaDNS-C], [1.1.3], [clowwindy42@gmail.com])
 AC_CONFIG_SRCDIR([src/chinadns.c])
 AC_CONFIG_HEADERS([config.h])
 
@@ -32,14 +32,14 @@ AC_CHECK_FUNCS([malloc realloc])
 AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
 AC_ARG_ENABLE([debug],
-    [  --enable-debug           build with additional debugging code],
+    [  --enable-debug          build with additional debugging code],
     [CFLAGS='-g -DDEBUG'])
 
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
 # Add a option to force static link the target.
 AC_ARG_ENABLE([static],
-    [  --enable-static           build with static link],
+    [  --enable-static         build with static linking],
     [LDFLAGS='-static'])
 
 AM_CONDITIONAL(STATIC, test x"$static" = x"true")
