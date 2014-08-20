@@ -20,7 +20,6 @@ Install
 
     * Download [precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
       brcm47xx, ramips_24kec.
-
     * If you use other CPU or other OpenWRT versions, build yourself:
       cd into [SDK] root, then
 
@@ -33,9 +32,7 @@ Install
 * Tomoto
 
     * Download [Tomato toolchain], build by yourself.
-
     * Uncompress the downloaded file to `~/`.
-
     * Copy the `brcm` directory under
         `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
 
