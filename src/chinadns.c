@@ -139,7 +139,7 @@ static const char *help_message =
   if (t == 0) {                                                     \
     if (verbose) {                                                  \
       fprintf(o, "%s ", time_str);                                  \
-      printf(s);                                                    \
+      fprintf(o, s);                                                    \
     }                                                               \
   } else if (t == 1) {                                              \
     fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);          \
