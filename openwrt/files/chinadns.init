@@ -13,13 +13,14 @@ start()
         -p 5353 \
         1> /tmp/log/chinadns.log \
         2> /tmp/log/chinadns.err.log &
+    echo $! > /tmp/chinadns.pid
     iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
 }
 
 stop()
 {
     iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
-    killall chinadns
+    kill `echo /tmp/chinadns.pid`
 }
 
 restart()
