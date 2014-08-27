@@ -213,12 +213,11 @@ int main(int argc, char **argv) {
 static int setnonblock(int sock) {
   int flags;
   flags = fcntl(sock, F_GETFL, 0);
-  if(flags == -1) {
+  if (flags == -1) {
     ERR("fcntl");
     return -1;
   }
-  fcntl(sock, F_SETFL, flags | O_NONBLOCK);
-  if(flags == -1) {
+  if (-1 == fcntl(sock, F_SETFL, flags | O_NONBLOCK)) {
     ERR("fcntl");
     return -1;
   }
