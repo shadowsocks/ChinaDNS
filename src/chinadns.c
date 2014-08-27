@@ -139,7 +139,7 @@ static const char *help_message =
   if (t == 0) {                                                     \
     if (verbose) {                                                  \
       fprintf(o, "%s ", time_str);                                  \
-      printf(s);                                                    \
+      fprintf(o, s);                                                    \
     }                                                               \
   } else if (t == 1) {                                              \
     fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);          \
@@ -212,13 +212,12 @@ int main(int argc, char **argv) {
 
 static int setnonblock(int sock) {
   int flags;
-  flags = fcntl(local_sock, F_GETFL, 0);
+  flags = fcntl(sock, F_GETFL, 0);
   if(flags == -1) {
     ERR("fcntl");
     return -1;
   }
-  fcntl(local_sock, F_SETFL, flags | O_NONBLOCK);
-  if(flags == -1) {
+  if(fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
     ERR("fcntl");
     return -1;
   }
