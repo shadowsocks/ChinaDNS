@@ -217,8 +217,7 @@ static int setnonblock(int sock) {
     ERR("fcntl");
     return -1;
   }
-  fcntl(sock, F_SETFL, flags | O_NONBLOCK);
-  if(flags == -1) {
+  if(fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
     ERR("fcntl");
     return -1;
   }
