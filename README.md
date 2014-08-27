@@ -20,7 +20,7 @@ Install
 
     * Download [precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
       brcm47xx, ramips_24kec. Open an issue if you think your CPU is a popular
-      one and not listed here.
+      one but not listed here.
     * If you use other CPU or other OpenWRT versions, build yourself:
       cd into [SDK] root, then
 
