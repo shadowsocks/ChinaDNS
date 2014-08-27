@@ -20,7 +20,7 @@ start()
 stop()
 {
     iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
-    kill `echo /tmp/chinadns.pid`
+    kill `cat /tmp/chinadns.pid`
 }
 
 restart()
