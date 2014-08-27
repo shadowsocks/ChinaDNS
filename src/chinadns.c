@@ -139,7 +139,7 @@ static const char *help_message =
   if (t == 0) {                                                     \
     if (verbose) {                                                  \
       fprintf(o, "%s ", time_str);                                  \
-      fprintf(o, s);                                                    \
+      fprintf(o, s);                                                \
     }                                                               \
   } else if (t == 1) {                                              \
     fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);          \
@@ -438,7 +438,8 @@ static int test_ip_in_list(struct in_addr ip, const net_list_t *netlist) {
     DLOG("%s, %d\n", inet_ntoa(netlist->nets[m].net),
          netlist->nets[m].mask);
   }
-  DLOG("result: %x\n", (ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)));
+  DLOG("result: %x\n",
+       (ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)));
   DLOG("mask: %x\n", (UINT32_MAX - netlist->nets[l].mask));
   if ((ntohl(netlist->nets[l].net.s_addr) ^ ntohl(ip.s_addr)) &
       (UINT32_MAX ^ netlist->nets[l].mask)) {
