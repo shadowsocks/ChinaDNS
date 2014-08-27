@@ -4,23 +4,30 @@
 START=90
 STOP=15
 EXTRA_COMMANDS="restart"
+PIDFILE='/tmp/chinadns.pid'
 
 start()
 {
+    if [ -f $PIDFILE ]
+        then
+            echo "already started: $PIDFILE exists"
+            exit 1
+    fi
     chinadns \
         -l /etc/chinadns_iplist.txt \
         -c /etc/chinadns_chnroute.txt \
         -p 5353 \
         1> /tmp/log/chinadns.log \
         2> /tmp/log/chinadns.err.log &
-    echo $! > /tmp/chinadns.pid
+    echo $! > $PIDFILE
     iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
 }
 
 stop()
 {
     iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
-    kill `cat /tmp/chinadns.pid`
+    kill `cat $PIDFILE`
+    rm $PIDFILE
 }
 
 restart()
