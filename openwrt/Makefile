@@ -39,8 +39,8 @@ endef
 
 define Package/ChinaDNS-C/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_CONF) ../iplist.txt $(1)/etc/chinadns_iplist.txt
-	$(INSTALL_CONF) ../chnroute.txt $(1)/etc/chinadns_chnroute.txt
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/iplist.txt $(1)/etc/chinadns_iplist.txt
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/chnroute.txt $(1)/etc/chinadns_chnroute.txt
 	$(INSTALL_BIN) ./files/chinadns.init $(1)/etc/init.d/chinadns
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/chinadns $(1)/usr/bin
