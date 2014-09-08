@@ -137,9 +137,10 @@ static const char *help_message =
   char *time_str = ctime(&now);                                     \
   time_str[strlen(time_str) - 1] = '\0';                            \
   if (t == 0) {                                                     \
-    if (verbose) {                                                  \
+    if (stdout != o || verbose) {                                   \
       fprintf(o, "%s ", time_str);                                  \
       fprintf(o, s);                                                \
+      fflush(o);                                                    \
     }                                                               \
   } else if (t == 1) {                                              \
     fprintf(o, "%s %s:%d ", time_str, __FILE__, __LINE__);          \
@@ -397,9 +398,16 @@ static int parse_chnroute() {
   }
   while ((read = getline(&line, &len, fp)) != -1) {
     char *sp_pos = strchr(line, '/');
-    *sp_pos = 0;
-    chnroute_list.nets[i].mask = (1 << (32 - atoi(sp_pos + 1))) - 1;
-    inet_aton(line, &chnroute_list.nets[i].net);
+    if (sp_pos) {
+      *sp_pos = 0;
+      chnroute_list.nets[i].mask = (1 << (32 - atoi(sp_pos + 1))) - 1;
+    } else {
+      chnroute_list.nets[i].mask = UINT32_MAX;
+    }
+    if (0 == inet_aton(line, &chnroute_list.nets[i].net)) {
+      VERR("invalid addr %s in %s:%d\n", line, chnroute_file, i + 1);
+      return 1;
+    }
     i++;
   }
   if (line)
