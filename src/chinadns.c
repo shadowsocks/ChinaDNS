@@ -148,7 +148,7 @@ static const char *help_message =
   }                                                                 \
 } while (0)
 
-#define LOG(s...) __LOG(stderr, 0, "_", s)
+#define LOG(s...) __LOG(stdout, 0, "_", s)
 #define ERR(s) __LOG(stderr, 1, s, "_")
 #define VERR(s...) __LOG(stderr, 0, "_", s)
 
@@ -316,9 +316,10 @@ static int cmp_in_addr(const void *a, const void *b) {
 }
 
 static int parse_ip_list() {
-  FILE * fp;
-  char * line = NULL;
-  size_t len = 0;
+  FILE *fp;
+  char line_buf[32];
+  char *line = NULL;
+  size_t len = sizeof(line_buf);
   ssize_t read;
   ip_list.entries = 0;
   int i = 0;
@@ -329,24 +330,19 @@ static int parse_ip_list() {
     VERR("Can't open ip list: %s\n", ip_list_file);
     return -1;
   }
-  while ((read = getline(&line, &len, fp)) != -1) {
+  while ((line = fgets(line_buf, len, fp))) {
     ip_list.entries++;
   }
-  if (line)
-    free(line);
-  line = NULL;
 
   ip_list.ips = calloc(ip_list.entries, sizeof(struct in_addr));
   if (0 != fseek(fp, 0, SEEK_SET)) {
     VERR("fseek");
     return -1;
   }
-  while ((read = getline(&line, &len, fp)) != -1) {
+  while ((line = fgets(line_buf, len, fp))) {
     inet_aton(line, &ip_list.ips[i]);
     i++;
   }
-  if (line)
-    free(line);
 
   qsort(ip_list.ips, ip_list.entries, sizeof(struct in_addr), cmp_in_addr);
   fclose(fp);
@@ -365,9 +361,10 @@ static int cmp_net_mask(const void *a, const void *b) {
 }
 
 static int parse_chnroute() {
-  FILE * fp;
-  char * line = NULL;
-  size_t len = 0;
+  FILE *fp;
+  char line_buf[32];
+  char *line;
+  size_t len = sizeof(line_buf);
   ssize_t read;
   char net[32];
   chnroute_list.entries = 0;
@@ -384,19 +381,16 @@ static int parse_chnroute() {
     VERR("Can't open chnroute: %s\n", chnroute_file);
     return -1;
   }
-  while ((read = getline(&line, &len, fp)) != -1) {
+  while ((line = fgets(line_buf, len, fp))) {
     chnroute_list.entries++;
   }
-  if (line)
-    free(line);
-  line = NULL;
 
   chnroute_list.nets = calloc(chnroute_list.entries, sizeof(net_mask_t));
   if (0 != fseek(fp, 0, SEEK_SET)) {
     VERR("fseek");
     return -1;
   }
-  while ((read = getline(&line, &len, fp)) != -1) {
+  while ((line = fgets(line_buf, len, fp))) {
     char *sp_pos = strchr(line, '/');
     if (sp_pos) {
       *sp_pos = 0;
@@ -410,8 +404,6 @@ static int parse_chnroute() {
     }
     i++;
   }
-  if (line)
-    free(line);
 
   qsort(chnroute_list.nets, chnroute_list.entries, sizeof(net_mask_t),
         cmp_net_mask);
