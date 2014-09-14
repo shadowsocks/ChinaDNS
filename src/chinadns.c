@@ -340,6 +340,11 @@ static int parse_ip_list() {
     return -1;
   }
   while ((line = fgets(line_buf, len, fp))) {
+    char *sp_pos;
+    sp_pos = strchr(line, '\r');
+    if (sp_pos) *sp_pos = 0;
+    sp_pos = strchr(line, '\n');
+    if (sp_pos) *sp_pos = 0;
     inet_aton(line, &ip_list.ips[i]);
     i++;
   }
@@ -391,7 +396,12 @@ static int parse_chnroute() {
     return -1;
   }
   while ((line = fgets(line_buf, len, fp))) {
-    char *sp_pos = strchr(line, '/');
+    char *sp_pos;
+    sp_pos = strchr(line, '\r');
+    if (sp_pos) *sp_pos = 0;
+    sp_pos = strchr(line, '\n');
+    if (sp_pos) *sp_pos = 0;
+    sp_pos = strchr(line, '/');
     if (sp_pos) {
       *sp_pos = 0;
       chnroute_list.nets[i].mask = (1 << (32 - atoi(sp_pos + 1))) - 1;
