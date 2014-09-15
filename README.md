@@ -11,14 +11,14 @@ Install
 
 * Linux / Unix
 
-    Download a [release].
+    [Download a release].
 
         ./configure && make
         src/chinadns -l iplist.txt -c chnroute.txt
 
 * OpenWRT
 
-    * Download [precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
+    * [Download precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
       brcm47xx, ramips_24kec. Open an issue if you think your CPU is a popular
       one but not listed here.
     * If you use other CPU or other OpenWRT versions, build yourself:
@@ -123,13 +123,13 @@ Please visit [Issue Tracker]
 Mailing list: http://groups.google.com/group/shadowsocks
 
 
-[Build Status]:     https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
-[ChinaDNS]:         https://github.com/clowwindy/ChinaDNS
-[Download]:         https://sourceforge.net/projects/chinadns/files/dist/
-[Issue Tracker]:    https://github.com/clowwindy/ChinaDNS-C/issues?state=open
-[precompiled]:      https://sourceforge.net/projects/chinadns/files/dist/
-[release]:          https://github.com/clowwindy/ChinaDNS-C/releases
-[SDK]:              http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
-[Tomato toolchain]: http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
-[Travis CI]:        https://travis-ci.org/clowwindy/ChinaDNS-C
-[weird things]:     http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
+[Build Status]:         https://img.shields.io/travis/clowwindy/ChinaDNS-C/master.svg?style=flat
+[ChinaDNS]:             https://github.com/clowwindy/ChinaDNS
+[Download]:             https://sourceforge.net/projects/chinadns/files/dist/
+[Issue Tracker]:        https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
+[Download a release]:   https://github.com/clowwindy/ChinaDNS-C/releases
+[SDK]:                  http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
+[Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
+[Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS-C
+[weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
