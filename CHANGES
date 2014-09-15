@@ -1,3 +1,7 @@
+1.1.6 2014-09-16
+- Use fgets() for better portability
+- Fix logs format
+
 1.1.5 2014-09-08
 - Support single IP address
 - Update IP list and CHNRoute
