@@ -1,3 +1,6 @@
+1.1.7 2014-09-16
+- Add 443 port of OpenDNS as default DNS
+
 1.1.6 2014-09-16
 - Use fgets() for better portability
 - Fix logs format
