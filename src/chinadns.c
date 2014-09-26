@@ -58,7 +58,7 @@ static const char *version = "ChinaDNS";
 #endif
 
 static const char *default_dns_servers =
-  "114.114.114.114,8.8.8.8,208.67.222.222";
+  "114.114.114.114,8.8.8.8,208.67.222.222:443,208.67.222.222";
 static char *dns_servers = NULL;
 static int dns_servers_len;
 static id_addr_t *dns_server_addrs;
@@ -126,7 +126,7 @@ static const char *help_message =
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
-  "                        114.114.114.114,208.67.222.222,8.8.8.8\n"
+  "                        114.114.114.114,208.67.222.222:443,8.8.8.8\n"
   "  -v                    verbose logging\n"
   "\n"
   "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
