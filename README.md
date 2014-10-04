@@ -30,7 +30,12 @@ Install
             git clone https://github.com/clowwindy/ChinaDNS-C.git
             popd
             make menuconfig # select Network/ChinaDNS
-            make
+            # Optional
+            make -j
+            make V=99 package/ChinaDNS-C/openwrt/compile
+            
+    * We strongly recommend you to set ChinaDNS as a upstream DNS server for dnsmasq,
+      for more information, please check [this page] for detail reason.
 
 * Tomoto
 
@@ -136,3 +141,4 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
 [Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS-C
 [weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
+[this page]:            https://github.com/aa65535/openwrt-chinadns#%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E
