@@ -6,6 +6,8 @@ ChinaDNS-C
 Fix [weird things] with DNS in China.
 This is a port of [ChinaDNS] to C, especially for OpenWRT.
 
+If you want to fix other weird things as well, you might also want to use [ShadowVPN].
+
 Install
 -------
 
@@ -130,6 +132,7 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
 [Download a release]:   https://github.com/clowwindy/ChinaDNS-C/releases
 [SDK]:                  http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
+[ShadowVPN]:            https://github.com/clowwindy/ShadowVPN
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
 [Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS-C
 [weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
