@@ -63,8 +63,8 @@ Usage
         opkg install ChinaDNS-C_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
 
-    We strongly recommend you to set ChinaDNS as a upstream DNS server for
-    dnsmasq instead of using ChinaDNS directly.
+    (Optional) We strongly recommend you to set ChinaDNS as a upstream DNS
+    server for dnsmasq instead of using ChinaDNS directly:
 
     1. Run `/etc/init.d/chinadns stop`
     2. Remove the 2 lines containing `iptables` in `/etc/init.d/chinadns`.
