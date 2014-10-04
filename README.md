@@ -66,14 +66,14 @@ Usage
     We strongly recommend you to set ChinaDNS as a upstream DNS server for
     dnsmasq instead of using ChinaDNS directly.
 
-        1. Run `/etc/init.d/chinadns stop`
-        2. Remove the 2 lines containing `iptables` in `/etc/init.d/chinadns`.
-        3. Update `/etc/dnsmasq.conf` to use only 127.0.0.1#5353:
+    1. Run `/etc/init.d/chinadns stop`
+    2. Remove the 2 lines containing `iptables` in `/etc/init.d/chinadns`.
+    3. Update `/etc/dnsmasq.conf` to use only 127.0.0.1#5353:
 
             no-resolv
             server=127.0.0.1#5353
 
-        4. Restart chinadns and dnsmasq
+    4. Restart chinadns and dnsmasq
 
 Test if it works correctly:
 
