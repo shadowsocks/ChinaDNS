@@ -33,9 +33,6 @@ Install
             # Optional
             make -j
             make V=99 package/ChinaDNS-C/openwrt/compile
-            
-    * We strongly recommend you to set ChinaDNS as a upstream DNS server for dnsmasq,
-      for more information, please check [this page] for detail reason.
 
 * Tomoto
 
@@ -65,6 +62,18 @@ Usage
 
         opkg install ChinaDNS-C_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
+
+    We strongly recommend you to set ChinaDNS as a upstream DNS server for
+    dnsmasq instead of using ChinaDNS directly.
+
+        1. Run `/etc/init.d/chinadns stop`
+        2. Remove the 2 lines containing `iptables` in `/etc/init.d/chinadns`.
+        3. Update `/etc/dnsmasq.conf` to use only 127.0.0.1#5353:
+
+            no-resolv
+            server=127.0.0.1#5353
+
+        4. Restart chinadns and dnsmasq
 
 Test if it works correctly:
 
@@ -141,4 +150,3 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
 [Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS-C
 [weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
-[this page]:            https://github.com/aa65535/openwrt-chinadns#%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E
