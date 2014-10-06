@@ -28,8 +28,7 @@ AC_TYPE_UINT16_T
 
 # Checks for library functions.
 # To fix rpl_malloc undefined error in mips cross-compile enviroment.
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
+AC_CHECK_FUNCS([malloc realloc])
 AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
 AC_ARG_ENABLE([debug],
