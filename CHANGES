@@ -1,3 +1,6 @@
+1.1.8 2014-11-19
+- Add -d option: also filter results inside China from foreign DNS servers
+
 1.1.7 2014-09-16
 - Add 443 port of OpenDNS as default DNS
 

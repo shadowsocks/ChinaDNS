@@ -51,6 +51,8 @@ static char global_buf[BUF_SIZE];
 
 static int verbose = 0;
 
+static int bidirectional = 0;
+
 #if defined(PACKAGE_STRING)
 static const char *version = PACKAGE_STRING;
 #else
@@ -123,6 +125,7 @@ static const char *help_message =
   "  -l IPLIST_FILE        path to ip blacklist file\n"
   "  -c CHNROUTE_FILE      path to china route file\n"
   "                        if not specified, CHNRoute will be turned off\n"
+  "  -d                    enable bi-directional CHNRoute filter\n"
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
@@ -231,7 +234,7 @@ static int parse_args(int argc, char **argv) {
   ip_list_file = strdup(default_ip_list_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:v")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:dv")) != -1) {
     switch (ch) {
     case 'h':
       printf("%s", help_message);
@@ -250,6 +253,9 @@ static int parse_args(int argc, char **argv) {
       break;
     case 'l':
       ip_list_file = strdup(optarg);
+      break;
+    case 'd':
+      bidirectional = 1;
       break;
     case 'v':
       verbose = 1;
@@ -271,6 +277,8 @@ static int resolve_dns_servers() {
   int r;
   int i = 0;
   char *pch = strchr(dns_servers, ',');
+  int has_chn_dns = 0;
+  int has_foreign_dns = 0;
   dns_servers_len = 1;
   while (pch != NULL) {
     dns_servers_len++;
@@ -301,6 +309,19 @@ static int resolve_dns_servers() {
     dns_server_addrs[i].addrlen = addr_ip->ai_addrlen;
     i++;
     token = strtok(0, ",");
+    if (test_ip_in_list(((struct sockaddr_in *)addr_ip->ai_addr)->sin_addr,
+                        &chnroute_list)) {
+      has_chn_dns = 1;
+    } else {
+      has_foreign_dns = 1;
+    }
+  }
+  if (chnroute_file) {
+    if (!(has_chn_dns && has_foreign_dns)) {
+      VERR("You should have at least one Chinese DNS and one foreign DNS when "
+          "chnroutes is enabled\n");
+      return 1;
+    }
   }
   return 0;
 }
@@ -622,8 +643,12 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
   int rrnum, rrmax;
   void *r;
   // TODO cache result for each dns server
-  int dns_is_chn = chnroute_file && (dns_servers_len > 1) &&
-    test_ip_in_list(dns_addr, &chnroute_list);
+  int dns_is_chn = 0;
+  int dns_is_foreign = 0;
+  if (chnroute_file && (dns_servers_len > 1)) {
+    dns_is_chn = test_ip_in_list(dns_addr, &chnroute_list);
+    dns_is_foreign = !dns_is_chn;
+  }
   rrmax = ns_msg_count(msg, ns_s_an);
   if (rrmax == 0)
     return -1;
@@ -643,10 +668,20 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
                   cmp_in_addr);
       if (r)
         return 1;
-      if (chnroute_file && dns_is_chn) {
-        // filter DNS result from chn dns if result is outside chn
-        if (!test_ip_in_list(*(struct in_addr *)rd, &chnroute_list))
+      if (test_ip_in_list(*(struct in_addr *)rd, &chnroute_list)) {
+        // result is chn
+        if (dns_is_foreign) {
+          if (bidirectional) {
+            // filter DNS result from chn dns if result is outside chn
+            return 1;
+          }
+        }
+      } else {
+        // result is foreign
+        if (dns_is_chn) {
+          // filter DNS result from foreign dns if result is inside chn
           return 1;
+        }
       }
     }
   }
