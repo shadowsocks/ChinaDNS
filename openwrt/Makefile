@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ChinaDNS-C
-PKG_VERSION:=1.1.7
+PKG_VERSION:=1.1.8
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_URL:=https://github.com/clowwindy/ChinaDNS-C/releases/download/$(PKG_VERSION)
