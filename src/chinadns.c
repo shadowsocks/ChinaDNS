@@ -320,7 +320,7 @@ static int resolve_dns_servers() {
     if (!(has_chn_dns && has_foreign_dns)) {
       VERR("You should have at least one Chinese DNS and one foreign DNS when "
           "chnroutes is enabled\n");
-      return 1;
+      return 0;
     }
   }
   return 0;
