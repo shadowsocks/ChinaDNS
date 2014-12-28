@@ -9,8 +9,9 @@ compiler:
   - gcc
 
 before_script:
+  - pip install gcovr
   - ./autogen.sh
   - ./configure
 
 script:
-  - make
+  - ./.jenkins.sh

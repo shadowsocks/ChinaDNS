@@ -157,6 +157,12 @@ static const char *help_message =
 
 #ifdef DEBUG
 #define DLOG(s...) LOG(s)
+void __gcov_flush(void);
+static void gcov_handler(int signum)
+{
+  __gcov_flush();
+  exit(1);
+}
 #else
 #define DLOG(s...)
 #endif
@@ -164,6 +170,10 @@ static const char *help_message =
 int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
+
+#ifdef DEBUG
+  signal(SIGTERM, gcov_handler);
+#endif
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
   memset(&delay_queue, 0, sizeof(delay_queue));

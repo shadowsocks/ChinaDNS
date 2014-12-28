@@ -33,7 +33,7 @@ AC_CHECK_FUNCS([inet_ntoa memset select socket strchr strdup strrchr])
 
 AC_ARG_ENABLE([debug],
     [  --enable-debug          build with additional debugging code],
-    [CFLAGS='-g -DDEBUG'])
+    [CFLAGS='-g -DDEBUG -fprofile-arcs -ftest-coverage -O0'])
 
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 

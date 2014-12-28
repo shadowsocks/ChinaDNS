@@ -10,6 +10,10 @@
 *.sdf
 *.status
 *.tar.*
+*.gcov
+*.gcda
+*.gcno
+*.html
 *~
 .DS_Store
 .deps
