@@ -9,6 +9,8 @@ compiler:
   - gcc
 
 before_script:
+  - sudo apt-get update -qq
+  - sudo apt-get install dnsutils
   - sudo pip install gcovr
   - ./autogen.sh
   - ./configure
