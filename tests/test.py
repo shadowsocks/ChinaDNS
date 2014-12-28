@@ -28,6 +28,7 @@ if r == 0:
 for p in [p1]:
     try:
         os.kill(p.pid, signal.SIGTERM)
+        os.waitpid(p.pid, 0)
     except OSError:
         pass
 
