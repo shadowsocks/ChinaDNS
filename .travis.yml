@@ -9,7 +9,7 @@ compiler:
   - gcc
 
 before_script:
-  - pip install gcovr
+  - sudo pip install gcovr
   - ./autogen.sh
   - ./configure
 
