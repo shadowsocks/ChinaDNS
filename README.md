@@ -9,6 +9,8 @@ This is a port of [ChinaDNS] to C, especially for OpenWRT.
 
 If you want to fix other weird things as well, you might also want to use [ShadowVPN].
 
+Report new fake IPs [here][Fake IP].
+
 Install
 -------
 
@@ -145,6 +147,7 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [Coverage Status]:      http://192.81.132.184/result/chinadns-c
 [Coverage]:             http://192.81.132.184/job/ChinaDNS-C/ws/src/index.html
 [Download]:             https://sourceforge.net/projects/chinadns/files/dist/
+[Fake IP]:              https://github.com/clowwindy/ChinaDNS-C/issues/42
 [Issue Tracker]:        https://github.com/clowwindy/ChinaDNS-C/issues?state=open
 [Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
 [Download a release]:   https://github.com/clowwindy/ChinaDNS-C/releases
