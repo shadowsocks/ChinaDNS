@@ -11,13 +11,15 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 typedef struct {
-  time_t ts;
+  uint16_t id;
+  struct timeval ts;
   char *buf;
   size_t buflen;
   struct sockaddr *addr;
@@ -61,7 +63,7 @@ static const char *version = "ChinaDNS";
 #endif
 
 static const char *default_dns_servers =
-  "114.114.114.114,8.8.8.8,208.67.222.222:443,208.67.222.222";
+  "114.114.114.114,8.8.8.8,8.8.4.4,208.67.222.222:443,208.67.222.222:5353";
 static char *dns_servers = NULL;
 static int dns_servers_len;
 static id_addr_t *dns_server_addrs;
@@ -102,10 +104,10 @@ static id_addr_t *queue_lookup(uint16_t id);
 static id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
 static int id_addr_queue_pos = 0;
 
-#define EMPTY_RESULT_DELAY 3
-#define DELAY_QUEUE_LEN 32
+#define EMPTY_RESULT_DELAY 0.3f
+#define DELAY_QUEUE_LEN 128
 static delay_buf_t delay_queue[DELAY_QUEUE_LEN];
-static void schedule_delay(const char *buf, size_t buflen,
+static void schedule_delay(uint16_t query_id, const char *buf, size_t buflen,
                            struct sockaddr *addr, socklen_t addrlen);
 static void check_and_send_delay();
 static void free_delay(int pos);
@@ -113,6 +115,7 @@ static void free_delay(int pos);
 static int delay_queue_first = 0;
 // current position for last, used
 static int delay_queue_last = 0;
+static float empty_result_delay = EMPTY_RESULT_DELAY;
 
 static int local_sock;
 static int remote_sock;
@@ -127,6 +130,7 @@ static const char *help_message =
   "  -c CHNROUTE_FILE      path to china route file\n"
   "                        if not specified, CHNRoute will be turned off\n"
   "  -d                    enable bi-directional CHNRoute filter\n"
+  "  -y                    delay time for suspects, default: 0.3\n"
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
@@ -199,8 +203,8 @@ int main(int argc, char **argv) {
     FD_SET(remote_sock, &readset);
     FD_SET(remote_sock, &errorset);
     struct timeval timeout = {
-      .tv_sec = 1,
-      .tv_usec = 0,
+      .tv_sec = 0,
+      .tv_usec = 100,
     };
     if (-1 == select(max_fd, &readset, NULL, &errorset, &timeout)) {
       ERR("select");
@@ -245,7 +249,7 @@ static int parse_args(int argc, char **argv) {
   ip_list_file = strdup(default_ip_list_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:dv")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dv")) != -1) {
     switch (ch) {
     case 'h':
       printf("%s", help_message);
@@ -264,6 +268,9 @@ static int parse_args(int argc, char **argv) {
       break;
     case 'l':
       ip_list_file = strdup(optarg);
+      break;
+    case 'y':
+      empty_result_delay = atof(optarg);
       break;
     case 'd':
       bidirectional = 1;
@@ -587,7 +594,8 @@ static void dns_handle_remote() {
                         id_addr->addrlen))
           ERR("sendto");
       } else if (r == -1) {
-        schedule_delay(global_buf, len, id_addr->addr, id_addr->addrlen);
+        schedule_delay(query_id, global_buf, len, id_addr->addr,
+                       id_addr->addrlen);
         if (verbose)
           printf("delay\n");
       } else {
@@ -696,15 +704,34 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
       }
     }
   }
+  if (rrmax == 1)
+    return -1;
   return 0;
 }
 
-static void schedule_delay(const char *buf, size_t buflen,
+static void schedule_delay(uint16_t query_id, const char *buf, size_t buflen,
                            struct sockaddr *addr, socklen_t addrlen) {
-  time_t now;
-  time(&now);
+  int i;
+  int found = 0;
+  struct timeval now;
+  gettimeofday(&now, 0);
 
   delay_buf_t *delay_buf = &delay_queue[delay_queue_last];
+
+  // first search for existed item with query_id and replace it
+  for (i = delay_queue_first;
+       i != delay_queue_last;
+       i = (i + 1) % DELAY_QUEUE_LEN) {
+    delay_buf_t *delay_buf2 = &delay_queue[i];
+    if (delay_buf2->id == query_id) {
+      ERR("overriding");
+      free_delay(i);
+      delay_buf = &delay_queue[i];
+      found = 1;
+    }
+  }
+
+  delay_buf->id = query_id;
   delay_buf->ts = now;
   delay_buf->buf = malloc(buflen);
   memcpy(delay_buf->buf, buf, buflen);
@@ -713,23 +740,30 @@ static void schedule_delay(const char *buf, size_t buflen,
   memcpy(delay_buf->addr, addr, addrlen);
   delay_buf->addrlen = addrlen;
 
-  delay_queue_last = (delay_queue_last + 1) % DELAY_QUEUE_LEN;
-  if (delay_queue_last == delay_queue_first) {
-    free_delay(delay_queue_first);
-    delay_queue_first = (delay_queue_first + 1) % DELAY_QUEUE_LEN;
+  // then append to queue
+  if (!found) {
+    delay_queue_last = (delay_queue_last + 1) % DELAY_QUEUE_LEN;
+    if (delay_queue_last == delay_queue_first) {
+      free_delay(delay_queue_first);
+      delay_queue_first = (delay_queue_first + 1) % DELAY_QUEUE_LEN;
+    }
   }
 }
 
+float time_diff(struct timeval t0, struct timeval t1) {
+  return (t1.tv_sec - t0.tv_sec) +
+      (t1.tv_usec - t0.tv_usec) / 1000000.0f;
+}
+
 static void check_and_send_delay() {
-  time_t ts_limit;
+  struct timeval now;
   int i;
-  time(&ts_limit);
-  ts_limit -= EMPTY_RESULT_DELAY;
+  gettimeofday(&now, 0);
   for (i = delay_queue_first;
        i != delay_queue_last;
        i = (i + 1) % DELAY_QUEUE_LEN) {
     delay_buf_t *delay_buf = &delay_queue[i];
-    if (delay_buf->ts < ts_limit) {
+    if (time_diff(delay_buf->ts, now) > empty_result_delay) {
       if (-1 == sendto(local_sock, delay_buf->buf, delay_buf->buflen, 0,
                        delay_buf->addr, delay_buf->addrlen))
         ERR("sendto");

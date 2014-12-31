@@ -80,25 +80,28 @@ Usage
 
 Test if it works correctly:
 
-    $ dig @192.168.1.1 www.youtube.com
-    Server:		192.168.1.1
-    Address:	192.168.1.1#53
+    $ dig @192.168.1.1 www.youtube.com -p5353
+    ; <<>> DiG 9.8.3-P1 <<>> @127.0.0.1 www.google.com -p5353
+    ; (1 server found)
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 16179
+    ;; flags: qr rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 0
 
-    Non-authoritative answer:
-    www.youtube.com	canonical name = youtube-ui.l.google.com.
-    youtube-ui.l.google.com	canonical name = youtube-ui-china.l.google.com.
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.102
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.101
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.113
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.100
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.139
-    Name:	youtube-ui-china.l.google.com
-    Address: 173.194.72.138
+    ;; QUESTION SECTION:
+    ;www.google.com.            IN  A
+
+    ;; ANSWER SECTION:
+    www.google.com.     215 IN  A   173.194.127.50
+    www.google.com.     215 IN  A   173.194.127.49
+    www.google.com.     215 IN  A   173.194.127.48
+    www.google.com.     215 IN  A   173.194.127.52
+    www.google.com.     215 IN  A   173.194.127.51
+
+    ;; Query time: 197 msec
+    ;; SERVER: 127.0.0.1#5353(127.0.0.1)
+    ;; WHEN: Thu Jan  1 02:37:16 2015
+    ;; MSG SIZE  rcvd: 112
 
 Currently ChinaDNS-C only supports UDP. Builtin OpenWRT init script works with
 dnsmasq, which handles TCP. If you use it directly without dnsmasq, you need to
@@ -117,6 +120,8 @@ Advanced
     -l IPLIST_FILE        path to ip blacklist file
     -c CHNROUTE_FILE      path to china route file
                           if not specified, CHNRoute will be turned off
+    -d                    enable bi-directional CHNRoute filter
+    -y                    delay time for suspects, default: 0.3
     -b BIND_ADDR          address that listens, default: 127.0.0.1
     -p BIND_PORT          port that listens, default: 53
     -s DNS                DNS servers to use, default:
