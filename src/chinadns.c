@@ -724,7 +724,6 @@ static void schedule_delay(uint16_t query_id, const char *buf, size_t buflen,
        i = (i + 1) % DELAY_QUEUE_LEN) {
     delay_buf_t *delay_buf2 = &delay_queue[i];
     if (delay_buf2->id == query_id) {
-      ERR("overriding");
       free_delay(i);
       delay_buf = &delay_queue[i];
       found = 1;
