@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
     FD_SET(remote_sock, &errorset);
     struct timeval timeout = {
       .tv_sec = 0,
-      .tv_usec = 100,
+      .tv_usec = 50 * 1000,
     };
     if (-1 == select(max_fd, &readset, NULL, &errorset, &timeout)) {
       ERR("select");
