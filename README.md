@@ -5,7 +5,7 @@ ChinaDNS-C
 [![Coverage Status]][Coverage]
 
 Fix [weird things] with DNS in China.
-This is a port of [ChinaDNS] to C, especially for OpenWRT.
+This is a port of [ChinaDNS] to C.
 
 If you want to fix other weird things as well, you might also want to use [ShadowVPN].
 
