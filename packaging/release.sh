@@ -7,6 +7,10 @@ fi
 
 VERSION=$1
 
+git tag $1
+git push origin $1
+./autogen.sh && ./configure && make dist
+
 API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master","name": "%s","body": "","draft": false,"prerelease": false}' $VERSION $VERSION)
 ID=`curl -v --data "$API_JSON" https://api.github.com/repos/clowwindy/ChinaDNS/releases?access_token=$GITHUB_TOKEN | python -c 'import json,sys;print json.load(sys.stdin)["id"]'`
 
