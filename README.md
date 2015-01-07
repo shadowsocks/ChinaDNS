@@ -30,7 +30,6 @@ Install
             git clone https://github.com/clowwindy/ChinaDNS.git
             popd
             make menuconfig # select Network/ChinaDNS
-            # Optional
             make -j
             make V=99 package/ChinaDNS/openwrt/compile
 
