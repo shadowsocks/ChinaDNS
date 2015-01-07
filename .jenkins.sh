@@ -33,6 +33,6 @@ run_test tests/test.py tests/twitter.com
 
 gcov src/*.c
 cd src && gcovr -r . --html  --html-details  -o index.html
-gcovr -r . | grep TOTAL | rev | cut -d' ' -f 1 | rev  > /tmp/chinadns-c-coverage
+gcovr -r . | grep TOTAL | rev | cut -d' ' -f 1 | rev  > /tmp/chinadns-coverage
 
 exit $result

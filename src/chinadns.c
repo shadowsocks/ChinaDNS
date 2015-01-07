@@ -137,7 +137,7 @@ static const char *help_message =
   "                        114.114.114.114,208.67.222.222:443,8.8.8.8\n"
   "  -v                    verbose logging\n"
   "\n"
-  "Online help: <https://github.com/clowwindy/ChinaDNS-C>\n";
+  "Online help: <https://github.com/clowwindy/ChinaDNS>\n";
 
 #define __LOG(o, t, v, s...) do {                                   \
   time_t now;                                                       \

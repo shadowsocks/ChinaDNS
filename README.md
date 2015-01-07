@@ -1,5 +1,5 @@
-ChinaDNS-C
-==========
+ChinaDNS
+========
 
 [![Build Status]][Travis CI]
 [![Coverage Status]][Coverage]
@@ -28,12 +28,12 @@ Install
       cd into [SDK] root, then
 
             pushd package
-            git clone https://github.com/clowwindy/ChinaDNS-C.git
+            git clone https://github.com/clowwindy/ChinaDNS.git
             popd
             make menuconfig # select Network/ChinaDNS
             # Optional
             make -j
-            make V=99 package/ChinaDNS-C/openwrt/compile
+            make V=99 package/ChinaDNS/openwrt/compile
 
 * Tomoto
 
@@ -43,8 +43,8 @@ Install
       `~/WRT54GL-US_v4.30.11_11/tools/` to `/opt`, then
 
             export PATH=/opt/brcm/hndtools-mipsel-uclibc/bin/:/opt/brcm/hndtools-mipsel-linux/bin/:$PATH
-            git clone https://github.com/clowwindy/ChinaDNS-C.git
-            cd ChinaDNS-C
+            git clone https://github.com/clowwindy/ChinaDNS.git
+            cd ChinaDNS
             ./autogen.sh && ./configure --host=mipsel-linux --enable-static && make
 
 * Windows
@@ -61,7 +61,7 @@ Usage
 
 * OpenWRT
 
-        opkg install ChinaDNS-C_1.x.x_ar71xx.ipk
+        opkg install ChinaDNS_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
 
     (Optional) We strongly recommend you to set ChinaDNS as a upstream DNS
@@ -101,7 +101,7 @@ Test if it works correctly:
     ;; WHEN: Thu Jan  1 02:37:16 2015
     ;; MSG SIZE  rcvd: 112
 
-Currently ChinaDNS-C only supports UDP. Builtin OpenWRT init script works with
+Currently ChinaDNS only supports UDP. Builtin OpenWRT init script works with
 dnsmasq, which handles TCP. If you use it directly without dnsmasq, you need to
 add a redirect rule for TCP:
 
@@ -145,16 +145,16 @@ Please visit [Issue Tracker]
 Mailing list: http://groups.google.com/group/shadowsocks
 
 
-[Build Status]:         https://travis-ci.org/clowwindy/ChinaDNS-C.svg?branch=master
+[Build Status]:         https://travis-ci.org/clowwindy/ChinaDNS.svg?branch=master
 [ChinaDNS]:             https://github.com/clowwindy/ChinaDNS
-[Coverage Status]:      http://192.81.132.184/result/chinadns-c
-[Coverage]:             http://192.81.132.184/job/ChinaDNS-C/ws/src/index.html
+[Coverage Status]:      http://192.81.132.184/result/chinadns
+[Coverage]:             http://192.81.132.184/job/ChinaDNS/ws/src/index.html
 [Download]:             https://sourceforge.net/projects/chinadns/files/dist/
-[Issue Tracker]:        https://github.com/clowwindy/ChinaDNS-C/issues?state=open
+[Issue Tracker]:        https://github.com/clowwindy/ChinaDNS/issues?state=open
 [Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
-[Download a release]:   https://github.com/clowwindy/ChinaDNS-C/releases
+[Download a release]:   https://github.com/clowwindy/ChinaDNS/releases
 [SDK]:                  http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [ShadowVPN]:            https://github.com/clowwindy/ShadowVPN
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
-[Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS-C
+[Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS
 [weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
