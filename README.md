@@ -16,7 +16,7 @@ Install
     [Download a release].
 
         ./configure && make
-        src/chinadns -l iplist.txt -c chnroute.txt
+        src/chinadns -m -c chnroute.txt
 
 * OpenWRT
 
@@ -53,8 +53,8 @@ Usage
 -----
 
 * Linux / Unix
-
-    Run `sudo chinadns -l iplist.txt` on your local machine. ChinaDNS creates a
+    Recommand using with option "-m" ([DNS pointer mutation method])
+    Run `sudo chinadns -m -c chnroute.txt` on your local machine. ChinaDNS creates a
     UDP DNS Server at `0.0.0.0:53`.
 
 * OpenWRT
@@ -122,6 +122,8 @@ Advanced
     -p BIND_PORT          port that listens, default: 53
     -s DNS                DNS servers to use, default:
                           114.114.114.114,208.67.222.222:443,8.8.8.8
+    -m                    Using DNS compression pointer mutation
+                          (backlist and delaying would be disabled)
     -v                    verbose logging
 
 About chnroute
@@ -156,3 +158,4 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
 [Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS
 [weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
+[DNS pointer mutation method]: https://gist.github.com/klzgrad/f124065c0616022b65e5
