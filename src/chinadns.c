@@ -100,7 +100,7 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr);
 static void queue_add(id_addr_t id_addr);
 static id_addr_t *queue_lookup(uint16_t id);
 
-#define ID_ADDR_QUEUE_LEN 256
+#define ID_ADDR_QUEUE_LEN 128
 // use a queue instead of hash here since it's not long
 static id_addr_t id_addr_queue[ID_ADDR_QUEUE_LEN];
 static int id_addr_queue_pos = 0;
@@ -687,7 +687,7 @@ static void dns_handle_remote() {
 }
 
 static void queue_add(id_addr_t id_addr) {
-  id_addr_queue_pos = (uint8_t)(id_addr.id & 0xff);
+  id_addr_queue_pos = (id_addr_queue_pos + 1) % ID_ADDR_QUEUE_LEN;
   // free next hole
   id_addr_t old_id_addr = id_addr_queue[id_addr_queue_pos];
   free(old_id_addr.addr);
@@ -696,9 +696,11 @@ static void queue_add(id_addr_t id_addr) {
 
 static id_addr_t *queue_lookup(uint16_t id) {
   int i;
-  i = (uint8_t)(id & 0xff);
-  if (id_addr_queue[i].id == id)
-  	return id_addr_queue + i;
+  // TODO assign new id instead of using id from clients
+  for (i = 0; i < ID_ADDR_QUEUE_LEN; i++) {
+    if (id_addr_queue[i].id == id)
+      return id_addr_queue + i;
+  }
   return NULL;
 }
 
@@ -741,14 +743,14 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
     dns_is_foreign = !dns_is_chn;
   }
   rrmax = ns_msg_count(msg, ns_s_an);
-  if (rrmax == 0){
-    if (compression){
+  if (rrmax == 0) {
+    if (compression) {
       // Wait for foreign dns
-      if (dns_is_chn)
+      if (dns_is_chn) {
         return 1;
-    } else {
-    return -1;
+      }
     }
+    return -1;
   }
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
     if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
@@ -765,8 +767,9 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
       if (!compression)
         r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
-        if (r)
+        if (r) {
           return 1;
+        }
       if (test_ip_in_list(*(struct in_addr *)rd, &chnroute_list)) {
         // result is chn
         if (dns_is_foreign) {
@@ -785,10 +788,11 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
     }
   }
   if (rrmax == 1){
-    if (compression)
+    if (compression) {
       return 0;
-    else
+    } else {
       return -1;
+    }
   }
   return 0;
 }
