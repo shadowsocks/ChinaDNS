@@ -49,11 +49,11 @@ typedef struct {
 
 
 // avoid malloc and free
-#define BUF_SIZE 2048
+#define BUF_SIZE 512
 static char global_buf[BUF_SIZE];
-
+static char compression_buf[BUF_SIZE];
 static int verbose = 0;
-
+static int compression = 0;
 static int bidirectional = 0;
 
 #if defined(PACKAGE_STRING)
@@ -63,9 +63,10 @@ static const char *version = "ChinaDNS";
 #endif
 
 static const char *default_dns_servers =
-  "114.114.114.114,8.8.8.8,8.8.4.4,208.67.222.222:443,208.67.222.222:5353";
+  "114.114.114.114,223.5.5.5,8.8.8.8,8.8.4.4,208.67.222.222:443,208.67.222.222:5353";
 static char *dns_servers = NULL;
 static int dns_servers_len;
+static int has_chn_dns;
 static id_addr_t *dns_server_addrs;
 
 static int parse_args(int argc, char **argv);
@@ -122,7 +123,7 @@ static int remote_sock;
 
 static const char *help_message =
   "usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n"
-  "       [-c CHNROUTE_FILE] [-s DNS] [-v]\n"
+  "       [-c CHNROUTE_FILE] [-s DNS] [-m] [-v]\n"
   "Forward DNS requests.\n"
   "\n"
   "  -h, --help            show this help message and exit\n"
@@ -134,7 +135,9 @@ static const char *help_message =
   "  -b BIND_ADDR          address that listens, default: 127.0.0.1\n"
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
-  "                        114.114.114.114,208.67.222.222:443,8.8.8.8\n"
+  "                        114.114.114.114,223.5.5.5,208.67.222.222:443,8.8.8.8\n"
+  "  -m                    Using DNS compression pointer mutation\n"
+  "                        (backlist and delaying would be disabled)\n"
   "  -v                    verbose logging\n"
   "\n"
   "Online help: <https://github.com/clowwindy/ChinaDNS>\n";
@@ -181,11 +184,12 @@ int main(int argc, char **argv) {
 #endif
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
-  memset(&delay_queue, 0, sizeof(delay_queue));
   if (0 != parse_args(argc, argv))
     return EXIT_FAILURE;
-  if (0 != parse_ip_list())
-    return EXIT_FAILURE;
+  if (!compression)
+  	memset(&delay_queue, 0, sizeof(delay_queue));
+    if (0 != parse_ip_list())
+      return EXIT_FAILURE;
   if (0 != parse_chnroute())
     return EXIT_FAILURE;
   if (0 != resolve_dns_servers())
@@ -210,7 +214,8 @@ int main(int argc, char **argv) {
       ERR("select");
       return EXIT_FAILURE;
     }
-    check_and_send_delay();
+    if (!compression)
+      check_and_send_delay();
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       VERR("local_sock error\n");
@@ -249,7 +254,7 @@ static int parse_args(int argc, char **argv) {
   ip_list_file = strdup(default_ip_list_file);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dv")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmv")) != -1) {
     switch (ch) {
     case 'h':
       printf("%s", help_message);
@@ -275,6 +280,9 @@ static int parse_args(int argc, char **argv) {
     case 'd':
       bidirectional = 1;
       break;
+    case 'm':
+      compression = 1;
+      break;
     case 'v':
       verbose = 1;
       break;
@@ -295,9 +303,15 @@ static int resolve_dns_servers() {
   int r;
   int i = 0;
   char *pch = strchr(dns_servers, ',');
-  int has_chn_dns = 0;
+  has_chn_dns = 0;
   int has_foreign_dns = 0;
   dns_servers_len = 1;
+  if (compression) {
+  	if(!chnroute_file){
+  		VERR("Chnroutes are necessary when using DNS compression pointer mutation\n");
+  		return -1;
+  	}
+  }
   while (pch != NULL) {
     dns_servers_len++;
     pch = strchr(pch + 1, ',');
@@ -323,22 +337,44 @@ static int resolve_dns_servers() {
       VERR("%s:%s\n", gai_strerror(r), token);
       return -1;
     }
-    dns_server_addrs[i].addr = addr_ip->ai_addr;
-    dns_server_addrs[i].addrlen = addr_ip->ai_addrlen;
-    i++;
-    token = strtok(0, ",");
-    if (test_ip_in_list(((struct sockaddr_in *)addr_ip->ai_addr)->sin_addr,
-                        &chnroute_list)) {
-      has_chn_dns = 1;
-    } else {
-      has_foreign_dns = 1;
-    }
+    if (compression){
+    	if(test_ip_in_list(((struct sockaddr_in *)addr_ip->ai_addr)->sin_addr,
+                    &chnroute_list)){
+            dns_server_addrs[has_chn_dns].addr = addr_ip->ai_addr;
+            dns_server_addrs[has_chn_dns].addrlen = addr_ip->ai_addrlen;
+    		has_chn_dns++;
+    	} else {
+    		has_foreign_dns++;
+            dns_server_addrs[dns_servers_len - has_foreign_dns].addr = addr_ip->ai_addr;
+            dns_server_addrs[dns_servers_len - has_foreign_dns].addrlen = addr_ip->ai_addrlen;
+    	}
+        token = strtok(0, ",");
+	} else {
+	  dns_server_addrs[i].addr = addr_ip->ai_addr;
+	  dns_server_addrs[i].addrlen = addr_ip->ai_addrlen;
+	  i++;
+	  token = strtok(0, ",");
+	  if (chnroute_file){
+		if (test_ip_in_list(((struct sockaddr_in *)addr_ip->ai_addr)->sin_addr,
+		                    &chnroute_list)) {
+		  has_chn_dns = 1;
+		} else {
+		  has_foreign_dns = 1;
+		  }
+	   }
+	 }
   }
   if (chnroute_file) {
     if (!(has_chn_dns && has_foreign_dns)) {
-      VERR("You should have at least one Chinese DNS and one foreign DNS when "
-          "chnroutes is enabled\n");
-      return 0;
+    	if (compression){
+      		VERR("You should have at least one Chinese DNS and one foreign DNS when "
+           		"using DNS compression pointer mutation\n");
+      		return -1;
+    	} else {
+      		VERR("You should have at least one Chinese DNS and one foreign DNS when "
+           		"chnroutes is enabled\n");
+            return 0;
+    	}
     }
   }
   return 0;
@@ -530,6 +566,7 @@ static void dns_handle_local() {
   uint16_t query_id;
   ssize_t len;
   int i;
+  int sended = 0;
   const char *question_hostname;
   ns_msg msg;
   len = recvfrom(local_sock, global_buf, BUF_SIZE, 0, src_addr, &src_addrlen);
@@ -549,12 +586,47 @@ static void dns_handle_local() {
     id_addr.addr = src_addr;
     id_addr.addrlen = src_addrlen;
     queue_add(id_addr);
-    for (i = 0; i < dns_servers_len; i++) {
-      if (-1 == sendto(remote_sock, global_buf, len, 0,
-                       dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
-        ERR("sendto");
-    }
-  }
+    if (compression){
+		if (len > 16){
+		  size_t off = 12;
+		  int ended = 0;
+		  while (off < len - 4){
+		    if (global_buf[off] & 0xc0)
+		      break;
+		    if (global_buf[off] == 0){
+		      ended = 1;
+		      off ++;
+		      break;
+		    }
+		    off += 1 + global_buf[off];
+		  }
+		  if (ended) {
+		    memcpy(compression_buf, global_buf, off-1);
+		    memcpy(compression_buf + off + 1, global_buf + off, len - off);
+		    compression_buf[off-1] = '\xc0';
+		    compression_buf[off] = '\x04';
+		    for (i = 0; i < has_chn_dns; i++) {
+		    	if (-1 == sendto(remote_sock, global_buf, len, 0,
+		                   dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
+		            ERR("sendto");
+		    }
+		    for (i =  has_chn_dns; i < dns_servers_len; i++) {
+		    	if (-1 == sendto(remote_sock, compression_buf, len + 1, 0,
+		                   dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
+		            ERR("sendto");
+		     sended = 1;
+		    }
+		  }
+		}
+	} 
+    if (!sended){
+    	for (i = 0; i < dns_servers_len; i++) {
+      		if (-1 == sendto(remote_sock, global_buf, len, 0,
+                       	dns_server_addrs[i].addr, dns_server_addrs[i].addrlen))
+        	ERR("sendto");
+    		}
+   	}
+  	}
   else
     ERR("recvfrom");
 }
@@ -594,10 +666,12 @@ static void dns_handle_remote() {
                         id_addr->addrlen))
           ERR("sendto");
       } else if (r == -1) {
-        schedule_delay(query_id, global_buf, len, id_addr->addr,
+      	if (!compression){
+          schedule_delay(query_id, global_buf, len, id_addr->addr,
                        id_addr->addrlen);
-        if (verbose)
-          printf("delay\n");
+          if (verbose)
+            printf("delay\n");
+        }
       } else {
         if (verbose)
           printf("filter\n");
@@ -669,8 +743,15 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
     dns_is_foreign = !dns_is_chn;
   }
   rrmax = ns_msg_count(msg, ns_s_an);
-  if (rrmax == 0)
+  if (rrmax == 0) {
+    if (compression) {
+      // Wait for foreign dns
+      if (dns_is_chn) {
+        return 1;
+      }
+    }
     return -1;
+  }
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
     if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
       ERR("ns_parserr");
@@ -683,10 +764,13 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
     if (type == ns_t_a) {
       if (verbose)
         printf("%s, ", inet_ntoa(*(struct in_addr *)rd));
-      r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
+      if (!compression) {
+        r = bsearch(rd, ip_list.ips, ip_list.entries, sizeof(struct in_addr),
                   cmp_in_addr);
-      if (r)
-        return 1;
+        if (r) {
+          return 1;
+        }
+     }
       if (test_ip_in_list(*(struct in_addr *)rd, &chnroute_list)) {
         // result is chn
         if (dns_is_foreign) {
@@ -704,8 +788,13 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
       }
     }
   }
-  if (rrmax == 1)
-    return -1;
+  if (rrmax == 1){
+    if (compression) {
+      return 0;
+    } else {
+      return -1;
+    }
+  }
   return 0;
 }
 
