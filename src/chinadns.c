@@ -136,7 +136,7 @@ static const char *help_message =
   "  -p BIND_PORT          port that listens, default: 53\n"
   "  -s DNS                DNS servers to use, default:\n"
   "                        114.114.114.114,223.5.5.5,208.67.222.222:443,8.8.8.8\n"
-  "  -m                    Using DNS compression pointer mutation\n"
+  "  -m                    use DNS compression pointer mutation\n"
   "                        (backlist and delaying would be disabled)\n"
   "  -v                    verbose logging\n"
   "\n"
