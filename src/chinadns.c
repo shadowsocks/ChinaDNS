@@ -666,7 +666,7 @@ static void dns_handle_remote() {
                         id_addr->addrlen))
           ERR("sendto");
       } else if (r == -1) {
-      	if (!compression){
+      	if (!compression) {
           schedule_delay(query_id, global_buf, len, id_addr->addr,
                        id_addr->addrlen);
           if (verbose)
