@@ -12,9 +12,9 @@ git push origin $1
 ./autogen.sh && ./configure && make dist
 
 API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master","name": "%s","body": "","draft": false,"prerelease": false}' $VERSION $VERSION)
-ID=`curl -v --data "$API_JSON" https://api.github.com/repos/clowwindy/ChinaDNS/releases?access_token=$GITHUB_TOKEN | python -c 'import json,sys;print json.load(sys.stdin)["id"]'`
+ID=`curl -L -v --data "$API_JSON" https://api.github.com/repos/clowwindy/ChinaDNS/releases?access_token=$GITHUB_TOKEN | python -c 'import json,sys;d = json.load(sys.stdin);print >>sys.stderr, d;print d["id"]'`
 
-curl -v -H "Content-Type: application/x-tar" \
+curl -v -L -H "Content-Type: application/x-tar" \
   -H "Authorization: token $GITHUB_TOKEN" \
   --data-binary "@chinadns-$VERSION.tar.gz" \
   https://uploads.github.com/repos/clowwindy/ChinaDNS/releases/$ID/assets?name=chinadns-$VERSION.tar.gz
