@@ -81,23 +81,20 @@ Test if it works correctly:
     ; (1 server found)
     ;; global options: +cmd
     ;; Got answer:
-    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 16179
-    ;; flags: qr rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 0
-
+    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 29845
+    ;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
+    
     ;; QUESTION SECTION:
-    ;www.google.com.            IN  A
-
+    ;www.youtube.com.		IN	A
+    
     ;; ANSWER SECTION:
-    www.google.com.     215 IN  A   173.194.127.50
-    www.google.com.     215 IN  A   173.194.127.49
-    www.google.com.     215 IN  A   173.194.127.48
-    www.google.com.     215 IN  A   173.194.127.52
-    www.google.com.     215 IN  A   173.194.127.51
+    www.youtube.com.	21569	IN	CNAME	youtube-ui.l.google.com.
+    youtube-ui.l.google.com. 269	IN	A	216.58.220.174
 
-    ;; Query time: 197 msec
+    ;; Query time: 74 msec
     ;; SERVER: 127.0.0.1#5353(127.0.0.1)
-    ;; WHEN: Thu Jan  1 02:37:16 2015
-    ;; MSG SIZE  rcvd: 112
+    ;; WHEN: Fri Jan 30 18:37:57 2015
+    ;; MSG SIZE  rcvd: 83
 
 Currently ChinaDNS only supports UDP. Builtin OpenWRT init script works with
 dnsmasq, which handles TCP. If you use it directly without dnsmasq, you need to
