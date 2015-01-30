@@ -4,9 +4,9 @@ ChinaDNS
 [![Build Status]][Travis CI]
 [![Coverage Status]][Coverage]
 
-Fix [weird things] with DNS in China.
+Protect yourself against DNS poisoning in China.
 
-If you want to fix other weird things as well, you might also want to use [ShadowVPN].
+In order to bypass IP blocking, you also need VPN software like [ShadowVPN].
 
 Install
 -------
@@ -154,5 +154,4 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ShadowVPN]:            https://github.com/clowwindy/ShadowVPN
 [Tomato toolchain]:     http://downloads.linksysbycisco.com/downloads/WRT54GL_v4.30.11_11_US.tgz
 [Travis CI]:            https://travis-ci.org/clowwindy/ChinaDNS
-[weird things]:         http://en.wikipedia.org/wiki/Great_Firewall_of_China#Blocking_methods
 [DNS pointer mutation method]: https://gist.github.com/klzgrad/f124065c0616022b65e5
