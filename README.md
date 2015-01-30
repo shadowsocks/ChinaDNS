@@ -147,8 +147,8 @@ Mailing list: http://groups.google.com/group/shadowsocks
 
 [Build Status]:         https://travis-ci.org/clowwindy/ChinaDNS.svg?branch=master
 [ChinaDNS]:             https://github.com/clowwindy/ChinaDNS
-[Coverage Status]:      http://192.81.132.184/result/chinadns
-[Coverage]:             http://192.81.132.184/job/ChinaDNS/ws/src/index.html
+[Coverage Status]:      https://jenkins.shadowvpn.org/result/chinadns
+[Coverage]:             https://jenkins.shadowvpn.org/job/ChinaDNS/ws/src/index.html
 [Download]:             https://sourceforge.net/projects/chinadns/files/dist/
 [Issue Tracker]:        https://github.com/clowwindy/ChinaDNS/issues?state=open
 [Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
