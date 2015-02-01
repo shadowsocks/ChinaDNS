@@ -35,6 +35,12 @@ run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/twitter.com
 run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/twitter.com
 run_test tests/test.py -a '-c chnroute.txt' -t tests/twitter.com
 run_test tests/test.py -a '-m -c chnroute.txt' -t tests/twitter.com
+run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/taobao.com
+run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/taobao.com
+run_test tests/test.py -a '-c chnroute.txt' -t tests/taobao.com
+run_test tests/test.py -a '-m -c chnroute.txt' -t tests/taobao.com
+
+
 
 gcov src/*.c
 rm src/*.html
