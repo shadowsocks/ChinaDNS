@@ -250,7 +250,6 @@ static int setnonblock(int sock) {
 static int parse_args(int argc, char **argv) {
   int ch;
   dns_servers = strdup(default_dns_servers);
-  ip_list_file = NULL;
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
   while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmv")) != -1) {

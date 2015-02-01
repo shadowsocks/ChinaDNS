@@ -9,14 +9,15 @@ import argparse
 from subprocess import Popen
 
 parser = argparse.ArgumentParser(description='test ChinaDNS')
-parser.add_argument('-a', '--arguments', type=list, default=[])
+parser.add_argument('-a', '--arguments', type=str, default=[])
 parser.add_argument('-t', '--test-command', type=str, default=None)
 
 config = parser.parse_args()
 
 arguments = config.arguments
-chinadns = ['src/chinadns', '-p', '15353', '-v'] + arguments
+chinadns = ['src/chinadns', '-p', '15353', '-v'] + arguments.split()
 
+print chinadns
 p1 = Popen(chinadns, shell=False, bufsize=0, close_fds=True)
 try:
 

@@ -27,6 +27,7 @@ function run_test {
 rm src/*.gc*
 run_test ./autogen.sh
 run_test ./configure --enable-debug
+make clean
 run_test make
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/google.com
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/facebook.com
