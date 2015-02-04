@@ -61,6 +61,9 @@ Usage
 
         opkg install ChinaDNS_1.x.x_ar71xx.ipk
         /etc/init.d/chinadns start
+        /etc/init.d/chinadns enable
+
+    Invoke the "enable" command to run the initscript on boot
 
     (Optional) We strongly recommend you to set ChinaDNS as a upstream DNS
     server for dnsmasq instead of using ChinaDNS directly:
