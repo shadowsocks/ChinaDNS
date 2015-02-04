@@ -31,14 +31,21 @@ make clean
 run_test make
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/google.com
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/facebook.com
+
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/twitter.com
 run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/twitter.com
 run_test tests/test.py -a '-c chnroute.txt' -t tests/twitter.com
 run_test tests/test.py -a '-m -c chnroute.txt' -t tests/twitter.com
+
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/taobao.com
 run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/taobao.com
 run_test tests/test.py -a '-c chnroute.txt' -t tests/taobao.com
 run_test tests/test.py -a '-m -c chnroute.txt' -t tests/taobao.com
+
+run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/x_8888
+run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/x_8888
+run_test tests/test.py -a '-c chnroute.txt' -t tests/x_8888
+run_test tests/test.py -a '-m -c chnroute.txt' -t tests/x_8888
 
 
 

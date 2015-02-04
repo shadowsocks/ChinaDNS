@@ -230,8 +230,7 @@ int main(int argc, char **argv) {
       ERR("select");
       return EXIT_FAILURE;
     }
-    if (!compression)
-      check_and_send_delay();
+    check_and_send_delay();
     if (FD_ISSET(local_sock, &errorset)) {
       // TODO getsockopt(..., SO_ERROR, ...);
       VERR("local_sock error\n");
@@ -687,12 +686,10 @@ static void dns_handle_remote() {
                          id_addr->addrlen))
           ERR("sendto");
       } else if (r == -1) {
-        if (!compression) {
-          schedule_delay(query_id, global_buf, len, id_addr->addr,
-                         id_addr->addrlen);
-          if (verbose)
-            printf("delay\n");
-        }
+        schedule_delay(query_id, global_buf, len, id_addr->addr,
+                       id_addr->addrlen);
+        if (verbose)
+          printf("delay\n");
       } else {
         if (verbose)
           printf("filter\n");
@@ -807,6 +804,9 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
           return 1;
         }
       }
+    } else if (type == ns_t_aaaa || type == ns_t_ptr) {
+      // if we've got an IPv6 result or a PTR result, pass
+      return 0;
     }
   }
   if (rrmax == 1) {
