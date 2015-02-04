@@ -766,6 +766,8 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
       // Wait for foreign dns
       if (dns_is_chn) {
         return 1;
+      } else {
+        return 0;
       }
     }
     return -1;
