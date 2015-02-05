@@ -30,9 +30,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 typedef struct {
   uint16_t id;
@@ -134,33 +132,6 @@ static int remote_sock;
 
 static void usage(void);
 
-static void usage()
-{
-  printf("\n");
-  printf("ChinaDNS %s\n", VERSION);
-  printf("\n");
-  printf("usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n");
-  printf("       [-c CHNROUTE_FILE] [-s DNS] [-m] [-v]\n");
-  printf("Forward DNS requests.\n");
-  printf("\n");
-  printf("  -l IPLIST_FILE        path to ip blacklist file\n");
-  printf("  -c CHNROUTE_FILE      path to china route file\n");
-  printf("                        if not specified, CHNRoute will be turned\n");
-  printf("  -d                    off enable bi-directional CHNRoute filter\n");
-  printf("  -y                    delay time for suspects, default: 0.3\n");
-  printf("  -b BIND_ADDR          address that listens, default: 127.0.0.1\n");
-  printf("  -p BIND_PORT          port that listens, default: 53\n");
-  printf("  -s DNS                DNS servers to use, default:\n");
-  printf("                        114.114.114.114,208.67.222.222:443,8.8.8.8\n");
-  printf("  -m                    use DNS compression pointer mutation\n");
-  printf("                        (backlist and delaying would be disabled)\n");
-  printf("  -v                    verbose logging\n");
-  printf("  -h                    show this help message and exit\n");
-  printf("\n");
-  printf("Online help: <https://github.com/clowwindy/ChinaDNS>\n");
-  printf("\n");
-}
-
 #define __LOG(o, t, v, s...) do {                                   \
   time_t now;                                                       \
   time(&now);                                                       \
@@ -216,7 +187,6 @@ int main(int argc, char **argv) {
   if (0 != dns_init_sockets())
     return EXIT_FAILURE;
 
-  printf("ChinaDNS %s\n", VERSION);
   max_fd = MAX(local_sock, remote_sock) + 1;
   while (1) {
     FD_ZERO(&readset);
@@ -271,7 +241,7 @@ static int parse_args(int argc, char **argv) {
   dns_servers = strdup(default_dns_servers);
   listen_addr = strdup(default_listen_addr);
   listen_port = strdup(default_listen_port);
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmv")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmvV")) != -1) {
     switch (ch) {
       case 'h':
         usage();
@@ -303,6 +273,9 @@ static int parse_args(int argc, char **argv) {
       case 'v':
         verbose = 1;
         break;
+      case 'V':
+        printf("ChinaDNS %s\n", PACKAGE_VERSION);
+        exit(0);
       default:
         usage();
         exit(1);
@@ -908,3 +881,29 @@ static void free_delay(int pos) {
   free(delay_queue[pos].buf);
   free(delay_queue[pos].addr);
 }
+
+static void usage() {
+  printf("%s\n", "\
+usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n\
+       [-c CHNROUTE_FILE] [-s DNS] [-m] [-v] [-V]\n\
+Forward DNS requests.\n\
+\n\
+  -l IPLIST_FILE        path to ip blacklist file\n\
+  -c CHNROUTE_FILE      path to china route file\n\
+                        if not specified, CHNRoute will be turned\n\
+  -d                    off enable bi-directional CHNRoute filter\n\
+  -y                    delay time for suspects, default: 0.3\n\
+  -b BIND_ADDR          address that listens, default: 127.0.0.1\n\
+  -p BIND_PORT          port that listens, default: 53\n\
+  -s DNS                DNS servers to use, default:\n\
+                        114.114.114.114,208.67.222.222:443,8.8.8.8\n\
+  -m                    use DNS compression pointer mutation\n\
+                        (backlist and delaying would be disabled)\n\
+  -v                    verbose logging\n\
+  -h                    show this help message and exit\n\
+  -V                    print version and exit\n\
+\n\
+Online help: <https://github.com/clowwindy/ChinaDNS>\n");
+}
+
+
