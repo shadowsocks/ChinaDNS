@@ -29,6 +29,10 @@ run_test ./autogen.sh
 run_test ./configure --enable-debug
 make clean
 run_test make
+
+run_test src/chinadns -h
+run_test src/chinadns -V
+
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/google.com
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/facebook.com
 
@@ -46,8 +50,6 @@ run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/x_8888
 run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/x_8888
 run_test tests/test.py -a '-c chnroute.txt' -t tests/x_8888
 run_test tests/test.py -a '-m -c chnroute.txt' -t tests/x_8888
-
-
 
 gcov src/*.c
 rm src/*.html
