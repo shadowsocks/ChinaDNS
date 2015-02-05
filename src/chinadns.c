@@ -811,14 +811,14 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
         // result is chn
         if (dns_is_foreign) {
           if (bidirectional) {
-            // filter DNS result from chn dns if result is outside chn
+            // filter DNS result from foreign dns if result is inside chn
             return 1;
           }
         }
       } else {
         // result is foreign
         if (dns_is_chn) {
-          // filter DNS result from foreign dns if result is inside chn
+          // filter DNS result from chn dns if result is outside chn
           return 1;
         }
       }
