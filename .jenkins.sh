@@ -35,6 +35,9 @@ run_test src/chinadns -V
 
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/google.com
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/facebook.com
+run_test tests/test.py -a '-c chnroute.txt -s 114.114.114.114,8.8.8.8 -l iplist.txt' -t tests/google.com
+run_test tests/test.py -a '-c chnroute.txt -y 0.5 -l iplist.txt' -t tests/google.com
+run_test tests/test.py -a '-c chnroute.txt -b 0.0.0.0 -l iplist.txt' -t tests/google.com
 
 run_test tests/test.py -a '-c chnroute.txt -l iplist.txt' -t tests/twitter.com
 run_test tests/test.py -a '-d -c chnroute.txt -l iplist.txt' -t tests/twitter.com
