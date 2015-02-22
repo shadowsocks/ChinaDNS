@@ -15,21 +15,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <fcntl.h>
-#include <netdb.h>
-#include <resolv.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
-#include <arpa/inet.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
 
+#ifdef __MINGW32__
+#  include <winsock2.h>
+#  include <windows.h>
+#  include <ws2tcpip.h>
+typedef uint32_t in_addr_t;
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#else
+#  include <arpa/inet.h>
+#  include <fcntl.h>
+#  include <netdb.h>
+#  include <sys/param.h>
+#  include <sys/select.h>
+#  include <sys/socket.h>
+#endif
+
+#include "resolv.h"
 #include "config.h"
 
 typedef struct {
@@ -165,11 +176,34 @@ static void gcov_handler(int signum)
 #define DLOG(s...)
 #endif
 
+#ifdef __MINGW32__
+static int inet_aton(const char *cp, struct in_addr *addr)
+{
+  addr->s_addr = inet_addr(cp);
+  return (addr->s_addr == INADDR_NONE) ? 0 : 1;
+}
+#endif
+
 int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
 
-#ifdef DEBUG
+#ifdef __MINGW32__
+  WORD wVersionRequested;
+  WSADATA wsaData;
+  int ret;
+  wVersionRequested = MAKEWORD(1, 1);
+  ret = WSAStartup(wVersionRequested, &wsaData);
+  if (ret != 0) {
+      VERR("Could not initialize winsock");
+  }
+  if (LOBYTE(wsaData.wVersion) != 1 || HIBYTE(wsaData.wVersion) != 1) {
+      WSACleanup();
+      VERR("Could not find a usable version of winsock");
+  }
+#endif
+
+#if defined(DEBUG) && !defined(__MINGW32__)
   signal(SIGTERM, gcov_handler);
 #endif
 
@@ -219,10 +253,24 @@ int main(int argc, char **argv) {
     if (FD_ISSET(remote_sock, &readset))
       dns_handle_remote();
   }
+
+#ifdef __MINGW32__
+  WSACleanup();
+#endif
+
   return EXIT_SUCCESS;
 }
 
 static int setnonblock(int sock) {
+#ifdef __MINGW32__
+  u_long iMode = 0;
+  long int iResult;
+  iResult = ioctlsocket(sock, FIONBIO, &iMode);
+  if (iResult != NO_ERROR) {
+    VERR("ioctlsocket failed with error: %ld\n", iResult);
+  }
+  return iResult;
+#else
   int flags;
   flags = fcntl(sock, F_GETFL, 0);
   if (flags == -1) {
@@ -234,6 +282,7 @@ static int setnonblock(int sock) {
     return -1;
   }
   return 0;
+#endif
 }
 
 static int parse_args(int argc, char **argv) {
