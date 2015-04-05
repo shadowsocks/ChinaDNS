@@ -4,7 +4,17 @@ ChinaDNS
 [![Build Status]][Travis CI]
 [![Coverage Status]][Coverage]
 
-Protect yourself against DNS poisoning in China.
+Traditional way to bypass DNS poisoning is to send all queries to
+a foreign DNS server via VPN. However some Chinese websites will get
+bad results if they have CDNs outside the country.
+
+The second way is to maintain a list of domains of which you want to
+resolve through local DNS or foreign DNS. This list changes too often,
+taking too much effort to maintain.
+
+ChinaDNS automatically queries local DNS servers to resolve Chinese domains
+and queries foreign DNS servers to resolve foreign domains. It is smart
+enough to work only with a Chinese IP range file, which doesn't change often.
 
 In order to bypass IP blocking, you also need VPN software like [ShadowVPN].
 
