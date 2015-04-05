@@ -9,7 +9,7 @@ a foreign DNS server via VPN. However some Chinese websites will get
 bad results if they have CDNs outside the country.
 
 The second way is to maintain a list of domains of which you want to
-resolve through local DNS or foreign DNS. This list changes too often,
+resolve from local DNS or foreign DNS. This list changes too often,
 taking too much effort to maintain.
 
 ChinaDNS automatically queries local DNS servers to resolve Chinese domains
