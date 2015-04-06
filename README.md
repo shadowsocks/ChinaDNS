@@ -31,8 +31,7 @@ Install
 * OpenWRT
 
     * [Download precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
-      brcm47xx, ramips_24kec. Open an issue if you think your CPU is a popular
-      one but not listed here.
+      brcm47xx, ramips_24kec. Open an issue if you think your CPU is mainstream but not listed above.
     * If you use other CPU or other OpenWRT versions, build yourself:
       cd into [SDK] root, then
 
