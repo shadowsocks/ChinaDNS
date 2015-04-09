@@ -789,6 +789,8 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
             // filter DNS result from foreign dns if result is inside chn
             return 1;
           }
+        } else {
+          return 0;
         }
       } else {
         // result is foreign
