@@ -147,6 +147,11 @@ static int my_ns_name_skip(const unsigned char **ptrptr, const unsigned char *eo
 static int my_labellen(const unsigned char *lp);
 #define MY_NS_TYPE_ELT 0x40 /*%< EDNS0 extended label type */ 
 #define MY_DNS_LABELTYPE_BITSTRING 0x41 
+#ifdef __UCLIBC__
+#define MY_NS_MSG_PTR _ptr
+#else
+#define MY_NS_MSG_PTR _msg_ptr
+#endif
 
 #define __LOG(o, t, v, s...) do {                                   \
   time_t now;                                                       \
@@ -997,44 +1002,44 @@ static int my_ns_parserr(ns_msg *handle, ns_sect section, int rrnum, ns_rr *rr)
 	if (rrnum < handle->_rrnum)
 		my_setsection(handle, section);
 	if (rrnum > handle->_rrnum) {
-		b = my_ns_skiprr(handle->_ptr, handle->_eom, section,
+		b = my_ns_skiprr(handle->MY_NS_MSG_PTR, handle->_eom, section,
 				rrnum - handle->_rrnum);
 
 		if (b < 0)
 			return (-1);
-		handle->_ptr += b;
+		handle->MY_NS_MSG_PTR += b;
 		handle->_rrnum = rrnum;
 	}
 
 	/* Do the parse. */
 	b = dn_expand(handle->_msg, handle->_eom,
-			handle->_ptr, rr->name, NS_MAXDNAME);
+			handle->MY_NS_MSG_PTR, rr->name, NS_MAXDNAME);
 	if (b < 0)
 		return (-1);
-	handle->_ptr += b;
-	if (handle->_ptr + NS_INT16SZ + NS_INT16SZ > handle->_eom) {
+	handle->MY_NS_MSG_PTR += b;
+	if (handle->MY_NS_MSG_PTR + NS_INT16SZ + NS_INT16SZ > handle->_eom) {
 		errno = EMSGSIZE;
 		return -1;
 	}
-	NS_GET16(rr->type, handle->_ptr);
-	NS_GET16(rr->rr_class, handle->_ptr);
+	NS_GET16(rr->type, handle->MY_NS_MSG_PTR);
+	NS_GET16(rr->rr_class, handle->MY_NS_MSG_PTR);
 	if (section == ns_s_qd) {
 		rr->ttl = 0;
 		rr->rdlength = 0;
 		rr->rdata = NULL;
 	} else {
-		if (handle->_ptr + NS_INT32SZ + NS_INT16SZ > handle->_eom) {
+		if (handle->MY_NS_MSG_PTR + NS_INT32SZ + NS_INT16SZ > handle->_eom) {
 			errno = EMSGSIZE;
 			return -1;
 		}
-		NS_GET32(rr->ttl, handle->_ptr);
-		NS_GET16(rr->rdlength, handle->_ptr);
-		if (handle->_ptr + rr->rdlength > handle->_eom) {
+		NS_GET32(rr->ttl, handle->MY_NS_MSG_PTR);
+		NS_GET16(rr->rdlength, handle->MY_NS_MSG_PTR);
+		if (handle->MY_NS_MSG_PTR + rr->rdlength > handle->_eom) {
 			errno = EMSGSIZE;
 			return -1;
 		}
-		rr->rdata = handle->_ptr;
-		handle->_ptr += rr->rdlength;
+		rr->rdata = handle->MY_NS_MSG_PTR;
+		handle->MY_NS_MSG_PTR += rr->rdlength;
 	}
 	if (++handle->_rrnum > handle->_counts[(int)section])
 		my_setsection(handle, (ns_sect)((int)section + 1));
@@ -1046,10 +1051,10 @@ static void my_setsection(ns_msg *msg, ns_sect sect)
 	msg->_sect = sect;
 	if (sect == ns_s_max) {
 		msg->_rrnum = -1;
-		msg->_ptr = NULL;
+		msg->MY_NS_MSG_PTR = NULL;
 	} else {
 		msg->_rrnum = 0;
-		msg->_ptr = msg->_sections[(int)sect];
+		msg->MY_NS_MSG_PTR = msg->_sections[(int)sect];
 	}
 } 
 static int my_ns_skiprr(const unsigned char *ptr, const unsigned char *eom, ns_sect section, int count)
