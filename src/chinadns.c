@@ -238,9 +238,6 @@ static int setnonblock(int sock) {
 
 static int parse_args(int argc, char **argv) {
   int ch;
-  dns_servers = strdup(default_dns_servers);
-  listen_addr = strdup(default_listen_addr);
-  listen_port = strdup(default_listen_port);
   while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmvV")) != -1) {
     switch (ch) {
       case 'h':
@@ -280,6 +277,15 @@ static int parse_args(int argc, char **argv) {
         usage();
         exit(1);
     }
+  }
+  if (dns_servers == NULL) {
+    dns_servers = strdup(default_dns_servers);
+  }
+  if (listen_addr == NULL) {
+    listen_addr = strdup(default_listen_addr);
+  }
+  if (listen_port == NULL) {
+    listen_port = strdup(default_listen_port);
   }
   argc -= optind;
   argv += optind;
