@@ -173,9 +173,9 @@ Mailing list: http://groups.google.com/group/shadowsocks
 [ChinaDNS]:             https://github.com/clowwindy/ChinaDNS
 [Coverage Status]:      https://jenkins.shadowvpn.org/result/chinadns
 [Coverage]:             https://jenkins.shadowvpn.org/job/ChinaDNS/ws/src/index.html
-[Download]:             https://sourceforge.net/projects/chinadns/files/dist/
+[Download]:             https://github.com/clowwindy/ChinaDNS/releases
 [Issue Tracker]:        https://github.com/clowwindy/ChinaDNS/issues?state=open
-[Download precompiled]: https://sourceforge.net/projects/chinadns/files/dist/
+[Download precompiled]: https://github.com/clowwindy/ChinaDNS/releases
 [Download a release]:   https://github.com/clowwindy/ChinaDNS/releases
 [SDK]:                  http://wiki.openwrt.org/doc/howto/obtain.firmware.sdk
 [ShadowVPN]:            https://github.com/clowwindy/ShadowVPN
