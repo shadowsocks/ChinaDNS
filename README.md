@@ -16,7 +16,7 @@ ChinaDNS automatically queries local DNS servers to resolve Chinese domains
 and queries foreign DNS servers to resolve foreign domains. It is smart
 enough to work only with a Chinese IP range file, which doesn't change often.
 
-In order to bypass IP blocking, you also need VPN software like [ShadowVPN].
+In order to bypass IP blocking, you SHOULD use VPN software like [ShadowVPN].
 
 Install
 -------
