@@ -31,6 +31,8 @@
 #include <sys/time.h>
 #include <sys/param.h>
 
+#include "local_ns_parser.h"
+
 #include "config.h"
 
 typedef struct {
@@ -571,8 +573,8 @@ static void dns_handle_local() {
   ns_msg msg;
   len = recvfrom(local_sock, global_buf, BUF_SIZE, 0, src_addr, &src_addrlen);
   if (len > 0) {
-    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
-      ERR("ns_initparse");
+    if (local_ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
+      ERR("local_ns_initparse");
       free(src_addr);
       return;
     }
@@ -659,8 +661,8 @@ static void dns_handle_remote() {
   ns_msg msg;
   len = recvfrom(remote_sock, global_buf, BUF_SIZE, 0, src_addr, &src_len);
   if (len > 0) {
-    if (ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
-      ERR("ns_initparse");
+    if (local_ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
+      ERR("local_ns_initparse");
       free(src_addr);
       return;
     }
@@ -731,8 +733,8 @@ static const char *hostname_from_question(ns_msg msg) {
   if (rrmax == 0)
     return NULL;
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
-    if (ns_parserr(&msg, ns_s_qd, rrnum, &rr)) {
-      ERR("ns_parserr");
+    if (local_ns_parserr(&msg, ns_s_qd, rrnum, &rr)) {
+      ERR("local_ns_parserr");
       return NULL;
     }
     result = ns_rr_name(rr);
@@ -771,8 +773,8 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
     return -1;
   }
   for (rrnum = 0; rrnum < rrmax; rrnum++) {
-    if (ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
-      ERR("ns_parserr");
+    if (local_ns_parserr(&msg, ns_s_an, rrnum, &rr)) {
+      ERR("local_ns_parserr");
       return 0;
     }
     u_int type;
