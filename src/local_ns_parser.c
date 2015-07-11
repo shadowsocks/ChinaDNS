@@ -7,8 +7,8 @@ static int local_ns_skiprr(const unsigned char *ptr, const unsigned char *eom, n
 static int local_ns_dn_skipname(const unsigned char *ptr, const unsigned char *eom);
 static int local_ns_name_skip(const unsigned char **ptrptr, const unsigned char *eom);
 static int local_ns_labellen(const unsigned char *lp);
-#define LOCAL_NS_TYPE_ELT 0x40 /*%< EDNS0 extended label type */ 
-#define LOCAL_DNS_LABELTYPE_BITSTRING 0x41 
+#define LOCAL_NS_TYPE_ELT 0x40 /*%< EDNS0 extended label type */
+#define LOCAL_DNS_LABELTYPE_BITSTRING 0x41
 #ifdef __UCLIBC__
 #define LOCAL_NS_MSG_PTR _ptr
 #else
@@ -17,7 +17,7 @@ static int local_ns_labellen(const unsigned char *lp);
 
 int local_ns_initparse(const unsigned char *msg, int msglen, ns_msg *handle)
 {
-	const u_char *eom = msg + msglen;
+	const unsigned char *eom = msg + msglen;
 	int i;
 
 	handle->_msg = msg;
@@ -62,7 +62,7 @@ int local_ns_initparse(const unsigned char *msg, int msglen, ns_msg *handle)
 
 	local_ns_setsection(handle, ns_s_max);
 	return 0;
-} 
+}
 int local_ns_parserr(ns_msg *handle, ns_sect section, int rrnum, ns_rr *rr)
 {
 	int b;
@@ -142,10 +142,10 @@ static void local_ns_setsection(ns_msg *msg, ns_sect sect)
 		msg->_rrnum = 0;
 		msg->LOCAL_NS_MSG_PTR = msg->_sections[(int)sect];
 	}
-} 
+}
 static int local_ns_skiprr(const unsigned char *ptr, const unsigned char *eom, ns_sect section, int count)
 {
-	const u_char *optr = ptr;
+	const unsigned char *optr = ptr;
 
 	for (; count > 0; count--) {
 		int b, rdlength;
@@ -154,7 +154,7 @@ static int local_ns_skiprr(const unsigned char *ptr, const unsigned char *eom, n
 		if (b < 0) {
 			errno = EMSGSIZE;
 			return -1;
-		} 
+		}
 		ptr += b/*Name*/ + NS_INT16SZ/*Type*/ + NS_INT16SZ/*Class*/;
 		if (section != ns_s_qd) {
 			if (ptr + NS_INT32SZ + NS_INT16SZ > eom) {
@@ -174,7 +174,7 @@ static int local_ns_skiprr(const unsigned char *ptr, const unsigned char *eom, n
 	}
 
 	return ptr - optr;
-} 
+}
 static int local_ns_dn_skipname(const unsigned char *ptr, const unsigned char *eom)
 {
 	const unsigned char *saveptr = ptr;
@@ -183,11 +183,11 @@ static int local_ns_dn_skipname(const unsigned char *ptr, const unsigned char *e
 		return -1;
 
 	return ptr - saveptr;
-} 
+}
 static int local_ns_name_skip(const unsigned char **ptrptr, const unsigned char *eom)
 {
 	const unsigned char *cp;
-	u_int n;
+	unsigned int n;
 	int l;
 
 	cp = *ptrptr;
@@ -223,7 +223,7 @@ static int local_ns_name_skip(const unsigned char **ptrptr, const unsigned char 
 	*ptrptr = cp;
 
 	return 0;
-} 
+}
 static int local_ns_labellen(const unsigned char *lp)
 {
 	int bitlen;
@@ -245,4 +245,4 @@ static int local_ns_labellen(const unsigned char *lp)
 	}
 
 	return l;
-} 
+}
