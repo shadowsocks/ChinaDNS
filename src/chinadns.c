@@ -902,7 +902,7 @@ Forward DNS requests.\n\
                         if not specified, CHNRoute will be turned\n\
   -d                    off enable bi-directional CHNRoute filter\n\
   -y                    delay time for suspects, default: 0.3\n\
-  -b BIND_ADDR          address that listens, default: 127.0.0.1\n\
+  -b BIND_ADDR          address that listens, default: 0.0.0.0\n\
   -p BIND_PORT          port that listens, default: 53\n\
   -s DNS                DNS servers to use, default:\n\
                         114.114.114.114,208.67.222.222:443,8.8.8.8\n\
