@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <resolv.h>
+#include <stddef.h>
 #include "local_ns_parser.h"
 
 static void local_ns_setsection(ns_msg *msg, ns_sect sect);
