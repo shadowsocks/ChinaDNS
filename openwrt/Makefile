@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ChinaDNS
-PKG_VERSION:=1.3.2
+PKG_VERSION:=1.3.3
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
-PKG_SOURCE_URL:=https://github.com/clowwindy/ChinaDNS/releases/download/$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/jemyzhang/ChinaDNS/releases/download/$(PKG_VERSION)
 PKG_SOURCE:=chinadns-$(PKG_VERSION).tar.gz
-PKG_MAINTAINER:=clowwindy <clowwindy42@gmail.com>
+PKG_MAINTAINER:=jemyzhang <jemy.zhang@gmail.com>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/chinadns-$(PKG_VERSION)
 
