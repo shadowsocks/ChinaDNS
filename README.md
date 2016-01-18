@@ -89,7 +89,7 @@ Usage
 
 Test if it works correctly:
 
-    $ dig @192.168.1.1 www.youtube.com -p5353
+    $ dig @127.0.0.1 www.youtube.com -p5353
     ; <<>> DiG 9.8.3-P1 <<>> @127.0.0.1 www.google.com -p5353
     ; (1 server found)
     ;; global options: +cmd
