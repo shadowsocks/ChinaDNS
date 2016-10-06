@@ -28,6 +28,16 @@ Install
         ./configure && make
         src/chinadns -m -c chnroute.txt
 
+    Or install the latest version from git repository:
+
+        git clone https://github.com/shadowsocks/ChinaDNS.git
+        cd ChinaDNS
+        ./autogen.sh
+        ./configure && make
+        src/chinadns -m -c chnroute.txt
+
+    Optionally, you can put `chinadns` into `$PATH`.
+
 * OpenWRT
 
     * [Download precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,
@@ -96,10 +106,10 @@ Test if it works correctly:
     ;; Got answer:
     ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 29845
     ;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
-    
+
     ;; QUESTION SECTION:
     ;www.youtube.com.		IN	A
-    
+
     ;; ANSWER SECTION:
     www.youtube.com.	21569	IN	CNAME	youtube-ui.l.google.com.
     youtube-ui.l.google.com. 269	IN	A	216.58.220.174
