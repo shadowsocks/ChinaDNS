@@ -806,8 +806,11 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
           return 1;
         }
       }
-    } else if (type == ns_t_aaaa || type == ns_t_ptr) {
-      // if we've got an IPv6 result or a PTR result, pass
+    } else if (type == ns_t_aaaa) {
+      if (dns_is_chn) {
+        return 1;
+      }
+    } else if (type == ns_t_ptr) {
       return 0;
     }
   }
