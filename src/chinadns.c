@@ -74,6 +74,7 @@ static char compression_buf[BUF_SIZE];
 static int verbose = 0;
 static int compression = 0;
 static int bidirectional = 0;
+static int is_daemon = 0;
 
 static const char *default_dns_servers =
 "114.114.114.114,223.5.5.5,8.8.8.8,8.8.4.4,208.67.222.222:443,208.67.222.222:5353";
@@ -133,6 +134,7 @@ static float empty_result_delay = EMPTY_RESULT_DELAY;
 static int local_sock;
 static int remote_sock;
 
+static void do_daemonize(void);
 static void usage(void);
 
 #define __LOG(o, t, v, s...) do {                                   \
@@ -189,6 +191,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   if (0 != dns_init_sockets())
     return EXIT_FAILURE;
+  if (is_daemon)
+    do_daemonize();
 
   max_fd = MAX(local_sock, remote_sock) + 1;
   while (1) {
@@ -241,7 +245,7 @@ static int setnonblock(int sock) {
 
 static int parse_args(int argc, char **argv) {
   int ch;
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmvV")) != -1) {
+  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmBvV")) != -1) {
     switch (ch) {
       case 'h':
         usage();
@@ -269,6 +273,9 @@ static int parse_args(int argc, char **argv) {
         break;
       case 'm':
         compression = 1;
+        break;
+      case 'B':
+        is_daemon = 1;
         break;
       case 'v':
         verbose = 1;
@@ -891,10 +898,53 @@ static void free_delay(int pos) {
   free(delay_queue[pos].addr);
 }
 
+static void do_daemonize(void) {
+  pid_t pid;
+  int fd;
+
+  /* Fork off the parent process */
+  if ((pid = fork()) < 0) {
+    /* Error */
+    VERR("fork() error\n");
+    exit(1);
+  } else if (pid > 0) {
+    /* Let the parent process terminate */
+    exit(0);
+  }
+
+  /* Do this before child process quits to prevent duplicate printf output */
+  if ((fd = open("/dev/null", O_RDWR)) >= 0) {
+    dup2(fd, 0);
+    dup2(fd, 1);
+    dup2(fd, 2);
+    if (fd > 2)
+      close(fd);
+  }
+
+  /* Catch, ignore and handle signals */
+  signal(SIGCHLD, SIG_IGN);
+  signal(SIGHUP, SIG_IGN);
+
+  /* Let the child process become session leader */
+  if (setsid() < 0)
+    exit(1);
+
+  if ((pid = fork()) < 0) {
+    /* Error */
+    exit(1);
+  } else if (pid > 0) {
+    /* Let the parent process terminate */
+    exit(0);
+  }
+
+  /* OK, set up the grandchild process */
+  chdir("/tmp");
+}
+
 static void usage() {
   printf("%s\n", "\
 usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n\
-       [-c CHNROUTE_FILE] [-s DNS] [-m] [-v] [-V]\n\
+       [-c CHNROUTE_FILE] [-s DNS] [-m] [-B] [-v] [-V]\n\
 Forward DNS requests.\n\
 \n\
   -l IPLIST_FILE        path to ip blacklist file\n\
@@ -908,11 +958,10 @@ Forward DNS requests.\n\
                         114.114.114.114,208.67.222.222:443,8.8.8.8\n\
   -m                    use DNS compression pointer mutation\n\
                         (backlist and delaying would be disabled)\n\
+  -B                    run as daemon\n\
   -v                    verbose logging\n\
   -h                    show this help message and exit\n\
   -V                    print version and exit\n\
 \n\
 Online help: <https://github.com/clowwindy/ChinaDNS>\n");
 }
-
-
