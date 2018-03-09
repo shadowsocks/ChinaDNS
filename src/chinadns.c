@@ -97,6 +97,12 @@ static char *ip_list_file = NULL;
 static ip_list_t ip_list;
 static int parse_ip_list();
 
+static char *ipwhite_list_file = NULL;
+static ip_list_t ipwhite_list;
+static int parse_ipwhite_list();
+static void append_ipwhite_list(struct in_addr addr);
+static void writeback_ipwhite_list();
+
 static char *chnroute_file = NULL;
 static net_list_t chnroute_list;
 static int parse_chnroute();
@@ -168,6 +174,12 @@ static void gcov_handler(int signum)
 #define DLOG(s...)
 #endif
 
+static void term_handler(int signum)
+{
+  writeback_ipwhite_list();
+  exit(1);
+}
+
 int main(int argc, char **argv) {
   fd_set readset, errorset;
   int max_fd;
@@ -175,6 +187,8 @@ int main(int argc, char **argv) {
 #ifdef DEBUG
   signal(SIGTERM, gcov_handler);
 #endif
+  signal(SIGTERM, term_handler);
+  signal(SIGINT, term_handler);
 
   memset(&id_addr_queue, 0, sizeof(id_addr_queue));
   if (0 != parse_args(argc, argv))
@@ -182,6 +196,8 @@ int main(int argc, char **argv) {
   if (!compression)
     memset(&delay_queue, 0, sizeof(delay_queue));
   if (0 != parse_ip_list())
+    return EXIT_FAILURE;
+  if (0 != parse_ipwhite_list())
     return EXIT_FAILURE;
   if (0 != parse_chnroute())
     return EXIT_FAILURE;
@@ -241,7 +257,7 @@ static int setnonblock(int sock) {
 
 static int parse_args(int argc, char **argv) {
   int ch;
-  while ((ch = getopt(argc, argv, "hb:p:s:l:c:y:dmvV")) != -1) {
+  while ((ch = getopt(argc, argv, "w:hb:p:s:l:c:y:dmvV")) != -1) {
     switch (ch) {
       case 'h':
         usage();
@@ -260,6 +276,9 @@ static int parse_args(int argc, char **argv) {
         break;
       case 'l':
         ip_list_file = strdup(optarg);
+        break;
+      case 'w':
+        ipwhite_list_file = strdup(optarg);
         break;
       case 'y':
         empty_result_delay = atof(optarg);
@@ -429,6 +448,80 @@ static int parse_ip_list() {
   qsort(ip_list.ips, ip_list.entries, sizeof(struct in_addr), cmp_in_addr);
   fclose(fp);
   return 0;
+}
+
+static int parse_ipwhite_list() {
+  FILE *fp;
+  char line_buf[32];
+  char *line = NULL;
+  size_t len = sizeof(line_buf);
+  ssize_t read;
+  ipwhite_list.entries = 0;
+  int i = 0;
+
+  if (ipwhite_list_file == NULL)
+    return 0;
+
+  fp = fopen(ipwhite_list_file, "rb");
+  if (fp == NULL) {
+    ERR("fopen");
+    VERR("Can't open ip white list: %s\n", ipwhite_list_file);
+    return -1;
+  }
+  while ((line = fgets(line_buf, len, fp))) {
+    ipwhite_list.entries++;
+  }
+
+  ipwhite_list.ips = calloc(ipwhite_list.entries, sizeof(struct in_addr));
+  if (0 != fseek(fp, 0, SEEK_SET)) {
+    VERR("fseek");
+    return -1;
+  }
+  while ((line = fgets(line_buf, len, fp))) {
+    char *sp_pos;
+    sp_pos = strchr(line, '\r');
+    if (sp_pos) *sp_pos = 0;
+    sp_pos = strchr(line, '\n');
+    if (sp_pos) *sp_pos = 0;
+    inet_aton(line, &ipwhite_list.ips[i]);
+    i++;
+  }
+
+  qsort(ipwhite_list.ips, ipwhite_list.entries, sizeof(struct in_addr), cmp_in_addr);
+  fclose(fp);
+  return 0;
+}
+
+static void append_ipwhite_list(struct in_addr addr)
+{
+  printf("append ip to white list: %s\n", inet_ntoa(addr));
+  struct in_addr* ips = ipwhite_list.ips;
+  ipwhite_list.ips = calloc(ipwhite_list.entries+1, sizeof(struct in_addr));
+  memcpy(ipwhite_list.ips, ips, sizeof(struct in_addr)*(ipwhite_list.entries));
+  ipwhite_list.ips[ipwhite_list.entries] = addr;
+  ipwhite_list.entries ++;
+  qsort(ipwhite_list.ips, ipwhite_list.entries, sizeof(struct in_addr), cmp_in_addr);
+  free(ips);
+}
+
+static void writeback_ipwhite_list()
+{
+  int i;
+  if (ipwhite_list_file == NULL)
+    return;
+
+  FILE *fp = fopen(ipwhite_list_file, "w");
+  if (fp == NULL) {
+    ERR("fopen");
+    VERR("Can't open ip white list: %s\n", ip_list_file);
+    return;
+  }
+  for(i = 0; i < ipwhite_list.entries; i++)
+  {
+    fprintf(fp,"%s\n",inet_ntoa(ipwhite_list.ips[i]));
+  }
+  fclose(fp);
+  printf("writeback ipwhite list:%d\n",ipwhite_list.entries);
 }
 
 static int cmp_net_mask(const void *a, const void *b) {
@@ -791,6 +884,11 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
           return 1;
         }
       }
+      r = bsearch(rd, ipwhite_list.ips, ipwhite_list.entries, sizeof(struct in_addr),
+                  cmp_in_addr);
+      if (r) {
+        return 0;
+      }
       if (test_ip_in_list(*(struct in_addr *)rd, &chnroute_list)) {
         // result is chn
         if (dns_is_foreign) {
@@ -804,6 +902,8 @@ static int should_filter_query(ns_msg msg, struct in_addr dns_addr) {
         if (dns_is_chn) {
           // filter DNS result from chn dns if result is outside chn
           return 1;
+        }else{
+          append_ipwhite_list(*(struct in_addr *)rd);
         }
       }
     } else if (type == ns_t_aaaa || type == ns_t_ptr) {
@@ -898,6 +998,7 @@ usage: chinadns [-h] [-l IPLIST_FILE] [-b BIND_ADDR] [-p BIND_PORT]\n\
 Forward DNS requests.\n\
 \n\
   -l IPLIST_FILE        path to ip blacklist file\n\
+  -w IPWHITELIST_FILE   path to ip whitelist file\n\
   -c CHNROUTE_FILE      path to china route file\n\
                         if not specified, CHNRoute will be turned\n\
   -d                    off enable bi-directional CHNRoute filter\n\
