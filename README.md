@@ -28,6 +28,33 @@ Install
         ./configure && make
         src/chinadns -m -c chnroute.txt
 
+* Snap / Linux
+
+	A snap is a bundle of your app and its dependencies that works without
+	modification across all Linux platforms (not only limited to Ubuntu).
+	ChinaDNS can be easily installed through the Snap Store by:
+
+		sudo snap install chinadns
+
+	Test it, open one shell to run:
+
+		sudo -i
+		curl 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv4 | grep CN | awk -F\| '{ printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > ~/chnroute.txt
+		chinadns -m -c ~/chnroute.txt -s 114.114.114.114,8.8.8.8 -p 5354 -v
+
+	open another shell to run:
+
+		dig google.com @127.0.0.1 -p 5354
+
+	You can also build and install Snap package from the source code:
+
+		sudo apt install -y build-essential squashfuse
+		sudo snap install --classic snapcraft
+		git clone https://github.com/shadowsocks/ChinaDNS.git
+		cd ChinaDNS
+		snapcraft
+		sudo snap install ./chinadns_master_amd64.snap --dangerous --classic
+
 * OpenWRT
 
     * [Download precompiled] for OpenWRT trunk and CPU: ar71xx, brcm63xx,

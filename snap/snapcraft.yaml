@@ -1,0 +1,17 @@
+name: chinadns
+version: 'master'
+summary: ChinaDNS protects yourself against DNS poisoning
+description: |
+  ChinaDNS automatically queries local DNS servers to resolve Chinese
+  domains and queries foreign DNS servers to resolve foreign domains.
+  see - https://github.com/shadowsocks/ChinaDNS
+grade: stable 
+confinement: strict
+apps:
+  chinadns:
+    command: bin/chinadns
+    plugs: [network, network-bind, home]
+parts:
+  chinadns:
+    source: https://github.com/shadowsocks/ChinaDNS.git
+    plugin: autotools
