@@ -26,7 +26,7 @@ Install
     [Download a release].
 
         ./configure && make
-        src/chinadns -m -c chnroute.txt
+        src/chinadns -c chnroute.txt
 
 * OpenWRT
 
@@ -63,8 +63,7 @@ Usage
 -----
 
 * Linux / Unix
-    Recommand using with option "-m" ([DNS pointer mutation method])
-    Run `sudo chinadns -m -c chnroute.txt` on your local machine. ChinaDNS creates a
+    Run `sudo chinadns -c chnroute.txt` on your local machine. ChinaDNS creates a
     UDP DNS Server at `0.0.0.0:53`.
 
 * OpenWRT
