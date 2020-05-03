@@ -68,7 +68,7 @@ typedef struct {
 
 
 // avoid malloc and free
-#define BUF_SIZE 512
+#define BUF_SIZE 2048
 static char global_buf[BUF_SIZE];
 static char compression_buf[BUF_SIZE];
 static int verbose = 0;
@@ -573,6 +573,7 @@ static void dns_handle_local() {
   ns_msg msg;
   len = recvfrom(local_sock, global_buf, BUF_SIZE, 0, src_addr, &src_addrlen);
   if (len > 0) {
+    //LOG("[local request] len(global_buf): %d\n", len);
     if (local_ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
       ERR("local_ns_initparse");
       free(src_addr);
@@ -582,7 +583,9 @@ static void dns_handle_local() {
     // TODO generate id for each request to avoid conflicts
     query_id = ns_msg_id(msg);
     question_hostname = hostname_from_question(msg);
-    LOG("request %s\n", question_hostname);
+    if (question_hostname) {
+      LOG("[local request] query for: %s, query from: %s:%d\n", question_hostname, inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr), htons(((struct sockaddr_in *)src_addr)->sin_port));
+    }
 
     // assign a new id
     uint16_t new_id;
@@ -661,6 +664,7 @@ static void dns_handle_remote() {
   ns_msg msg;
   len = recvfrom(remote_sock, global_buf, BUF_SIZE, 0, src_addr, &src_len);
   if (len > 0) {
+    //LOG("[remote response] len(global_buf): %d\n", len);
     if (local_ns_initparse((const u_char *)global_buf, len, &msg) < 0) {
       ERR("local_ns_initparse");
       free(src_addr);
@@ -670,9 +674,9 @@ static void dns_handle_remote() {
     query_id = ns_msg_id(msg);
     question_hostname = hostname_from_question(msg);
     if (question_hostname) {
-      LOG("response %s from %s:%d - ", question_hostname,
-          inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
-          htons(((struct sockaddr_in *)src_addr)->sin_port));
+        LOG("[remote response] answer for: %s, answer from %s:%d\n", question_hostname,
+        inet_ntoa(((struct sockaddr_in *)src_addr)->sin_addr),
+        htons(((struct sockaddr_in *)src_addr)->sin_port));
     }
     id_addr_t *id_addr = queue_lookup(query_id);
     if (id_addr) {
